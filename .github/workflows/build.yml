@@ -77,26 +77,19 @@ jobs:
       - name: Generate Xcode project
         run: xcodegen generate
 
-      # project.yml decides the project name, the app target (built through its
-      # scheme) and the app's PRODUCT_NAME, so they're read from the generated
-      # project instead of being repeated here.
+      # project.yml names the project and the app target AltLoad (internal names
+      # only; the app shows itself as Reloader), and PRODUCT_NAME is the target
+      # name, as in upstream's workflow. Change these if project.yml renames them.
       - name: Find the app target
         run: |
           set -euo pipefail
-          PROJECT="$(ls -d *.xcodeproj)"
-          xcodebuild -project "$PROJECT" -alltargets -configuration Release -sdk iphoneos \
-            -showBuildSettings -json > "$RUNNER_TEMP/settings.json"
-          python3 - "$RUNNER_TEMP/settings.json" >> "$GITHUB_ENV" <<'EOF'
-          import json, sys
-          apps = [t["buildSettings"] for t in json.load(open(sys.argv[1]))
-                  if t["buildSettings"].get("PRODUCT_TYPE") == "com.apple.product-type.application"]
-          if len(apps) != 1:
-              sys.exit(f"Expected one application target in project.yml, found {len(apps)}")
-          print(f"XCODE_SCHEME={apps[0]['TARGET_NAME']}")
-          print(f"APP_NAME={apps[0]['FULL_PRODUCT_NAME']}")
-          EOF
-          echo "XCODE_PROJECT=$PROJECT" >> "$GITHUB_ENV"
-          grep -E '^(XCODE_|APP_NAME=)' "$GITHUB_ENV"
+          test -d AltLoad.xcodeproj || { echo "::error::xcodegen made no AltLoad.xcodeproj: $(ls -d *.xcodeproj)"; exit 1; }
+          {
+            echo "XCODE_PROJECT=AltLoad.xcodeproj"
+            echo "XCODE_SCHEME=AltLoad"
+            echo "APP_NAME=AltLoad.app"
+          } >> "$GITHUB_ENV"
+          xcodebuild -list -project AltLoad.xcodeproj
 
       - name: Build (Release, unsigned)
         run: |
