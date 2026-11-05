@@ -55,7 +55,7 @@ struct PairingToAppsView: View {
                 }
             } else if loaded && filtered.isEmpty && search.isEmpty {
                 GlassCard {
-                    Text("No sideloaded apps on this iPhone. Install SideStore, StikDebug or another app with AltLoad first.")
+                    Text("No sideloaded apps on this iPhone. Install SideStore, StikDebug or another app with Reloader first.")
                         .font(.subheadline)
                         .foregroundStyle(Aurora.secondaryText)
                 }

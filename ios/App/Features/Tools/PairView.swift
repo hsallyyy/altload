@@ -70,6 +70,12 @@ struct PairView: View {
         switch controller.phase {
         case .idle:
             VStack(spacing: 14) {
+                if let file = Hosting.iloaderPairingFile {
+                    GlassActionButton(title: "Use iloader's Pairing File", systemImage: "doc.badge.gearshape", prominent: store.items.isEmpty) {
+                        useILoaderPairing(file)
+                    }
+                    footnote("Found in \(Hosting.hostName)'s SideStore folder, where iloader put it.")
+                }
                 if PairingController.canPairOnDevice {
                     GlassActionButton(title: "Pair This iPhone or iPad", systemImage: "iphone.gen3", prominent: true) {
                         controller.start()
@@ -125,11 +131,11 @@ struct PairView: View {
                         GuideStep(number: 1, text: "Open the **Settings** app")
                         GuideStep(number: 2, text: "Go to **Privacy & Security**")
                         GuideStep(number: 3, text: "Tap **Developer Mode**")
-                        GuideStep(number: 4, text: "Scroll down and tap **Pair with AltLoad**")
+                        GuideStep(number: 4, text: "Scroll down and tap **Pair with Reloader**")
                     }
                 }
                 locationGuidance
-                footnote("If **Pair with AltLoad** doesn't show up, close the app and try again.")
+                footnote("If **Pair with Reloader** doesn't show up, close the app and try again.")
             }
 
         case .showPin(let pin):
@@ -162,7 +168,7 @@ struct PairView: View {
                 }
                 .buttonStyle(AltLoadButtonStyle(minHeight: 56))
 
-                footnote("AltLoad will use this file for installs. It's also in **Files › On My iPhone › AltLoad › Pairings**.")
+                footnote("Reloader will use this file for installs and refreshes. It's also in **Files › On My iPhone › Reloader › Pairings**.")
 
                 GlassActionButton(title: "Done") { controller.reset() }
             }
@@ -215,7 +221,7 @@ struct PairView: View {
             }
         case .denied, .restricted:
             GlassCard(tint: Aurora.danger) {
-                Text("Location is off, so background keep-alive can't run. If **Pair with AltLoad** doesn't appear, turn on **Silent audio** in Settings, or allow Location for AltLoad.")
+                Text("Location is off, so background keep-alive can't run. If **Pair with Reloader** doesn't appear, turn on **Silent audio** in Settings, or allow Location for Reloader.")
                     .font(.footnote)
                     .foregroundStyle(.secondary)
             }
@@ -224,7 +230,7 @@ struct PairView: View {
         }
     }
 
-    /// Below iOS 27 the iPhone can't pair with AltLoad, so the pairing file has
+    /// Below iOS 27 the iPhone can't pair with Reloader, so the pairing file has
     /// to come from a computer once.
     private var importGuidance: some View {
         GlassCard(tint: Aurora.accent) {
@@ -239,6 +245,14 @@ struct PairView: View {
                 GuideStep(number: 2, text: "Save it to **Files** on this iPhone or iPad, or AirDrop it over")
                 GuideStep(number: 3, text: "Tap **Import Pairing File** and choose it")
             }
+        }
+    }
+
+    private func useILoaderPairing(_ file: URL) {
+        do {
+            controller.phase = .success(try store.importForThisDevice(at: file, name: UIDevice.current.name))
+        } catch {
+            controller.phase = .failed(String(localized: "iloader's pairing file couldn't be imported: \(error.localizedDescription)"))
         }
     }
 
@@ -342,8 +356,8 @@ struct PairView: View {
     private var subtitle: String {
         switch controller.phase {
         case .idle: PairingController.canPairOnDevice
-            ? String(localized: "Create a pairing file on this device. AltLoad uses it to install apps.")
-            : String(localized: "AltLoad needs this device's pairing file to install apps.")
+            ? String(localized: "Create a pairing file on this device. Reloader uses it to install apps and refresh their profiles.")
+            : String(localized: "Reloader needs this device's pairing file to install apps and refresh their profiles.")
         case .waiting: String(localized: "Listening on your local network.")
         case .showPin: String(localized: "Almost there.")
         case .success: String(localized: "Your pairing file is ready.")

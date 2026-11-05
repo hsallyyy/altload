@@ -3,7 +3,7 @@ import Foundation
 import Network
 import UIKit
 
-/// AltLoad acting as AltServer for the AltStore on this iPhone.
+/// Reloader acting as AltServer for the AltStore on this iPhone.
 ///
 /// AltStore signs apps itself; it only needs "a server" to put them on the device,
 /// manage provisioning profiles and hand it anisette data. It looks in two places:
@@ -12,17 +12,20 @@ import UIKit
 ///    `io.altstore.Request.WiredServerConnectionAvailable` and waits one second for
 ///    `…Response.WiredServerConnectionAvailable`. If it gets one, it treats the server
 ///    as connected over USB, posts `…Request.WiredServerConnectionStart` and waits for
-///    that server to connect to it on 127.0.0.1:28151. AltLoad answers both, so AltStore
+///    that server to connect to it on 127.0.0.1:28151. Reloader answers both, so AltStore
 ///    picks it before any AltServer on the network.
 /// 2. **Wi-Fi.** A Bonjour `_altserver._tcp` service whose TXT `serverID` matches the
-///    ALTServerID AltLoad wrote into AltStore, which makes it AltStore's preferred server.
+///    ALTServerID Reloader wrote into AltStore, which makes it AltStore's preferred server.
 ///
 /// Requests use AltServer's protocol: a little-endian Int32 length, then JSON.
 /// One request per connection. The device work (installation_proxy, AFC, misagent)
 /// goes through LocalDevVPN via DeviceOps.
 ///
-/// iOS pauses AltLoad in the background, so it only answers while it's open or kept
+/// iOS pauses Reloader in the background, so it only answers while it's open or kept
 /// awake (silent audio).
+///
+/// Off unless the user turns it on: AltStore's profile juggling removes every free
+/// profile it doesn't list, LiveContainer's included.
 @MainActor
 final class AltServerHost: ObservableObject {
     static let shared = AltServerHost()
@@ -42,7 +45,7 @@ final class AltServerHost: ObservableObject {
         var fraction: Double?
     }
 
-    @Published var isEnabled: Bool = UserDefaults.standard.object(forKey: "altserver.enabled") as? Bool ?? true {
+    @Published var isEnabled: Bool = UserDefaults.standard.object(forKey: "altserver.enabled") as? Bool ?? false {
         didSet {
             UserDefaults.standard.set(isEnabled, forKey: "altserver.enabled")
             if isEnabled { start() } else { stop() }
@@ -50,9 +53,10 @@ final class AltServerHost: ObservableObject {
         }
     }
 
-    /// Plays silent audio so AltLoad keeps answering AltStore from the background.
-    /// On by default, so AltStore finds AltServer without AltLoad open.
-    @Published var keepAwake: Bool = UserDefaults.standard.object(forKey: "altserver.keepAwake") as? Bool ?? true {
+    /// Plays silent audio so Reloader keeps running in the background, whether or not
+    /// AltServer is on. Off by default: a profile refresh keeps Reloader awake by itself
+    /// while it runs.
+    @Published var keepAwake: Bool = UserDefaults.standard.object(forKey: "altserver.keepAwake") as? Bool ?? false {
         didSet {
             UserDefaults.standard.set(keepAwake, forKey: "altserver.keepAwake")
             applyKeepAwake()
@@ -89,7 +93,7 @@ final class AltServerHost: ObservableObject {
         isRunning = true
         observeDarwinNotifications()
         startWiFiListener()
-        log("AltServer started", detail: "AltStore on this iPhone can now find AltLoad.", kind: .info)
+        log("AltServer started", detail: "AltStore on this iPhone can now find Reloader.", kind: .info)
     }
 
     func stop() {
@@ -103,15 +107,15 @@ final class AltServerHost: ObservableObject {
         log("AltServer stopped", detail: nil, kind: .info)
     }
 
-    /// Re-arms the Wi-Fi listener after coming back to the foreground.
+    /// Re-arms the background audio and the Wi-Fi listener after coming back to the foreground.
     func refresh() {
+        applyKeepAwake()
         guard isRunning else { return }
         if listener == nil { startWiFiListener() }
-        applyKeepAwake()
     }
 
     private func applyKeepAwake() {
-        if isEnabled && keepAwake {
+        if keepAwake {
             keepAlive.startAudio()
         } else {
             keepAlive.stopAudio()
@@ -158,6 +162,13 @@ final class AltServerHost: ObservableObject {
     // MARK: - Wi-Fi (Bonjour)
 
     private func startWiFiListener() {
+        // Bonjour only advertises types the app's Info.plist lists, and inside LiveContainer
+        // that's LiveContainer's list, which has no _altserver._tcp. The on-device link
+        // above still works there.
+        guard !Hosting.isHosted else {
+            wifiState = String(localized: "Not available inside LiveContainer, which doesn't list _altserver._tcp")
+            return
+        }
         do {
             let parameters = NWParameters.tcp
             parameters.includePeerToPeer = false
@@ -165,7 +176,7 @@ final class AltServerHost: ObservableObject {
             var txt = NWTXTRecord()
             txt["serverID"] = InstallController.serverID
             listener.service = NWListener.Service(
-                name: "AltLoad (\(UIDevice.current.name))", type: "_altserver._tcp", domain: nil, txtRecord: txt)
+                name: "Reloader (\(UIDevice.current.name))", type: "_altserver._tcp", domain: nil, txtRecord: txt)
             listener.stateUpdateHandler = { state in
                 let text: String
                 switch state {
@@ -210,7 +221,7 @@ final class AltServerHost: ObservableObject {
             let identifier = request["identifier"] as? String ?? ""
             switch identifier {
             case "AnisetteDataRequest":
-                // The same servers AltLoad signs in with ("Automatic" picks working ones).
+                // The same servers Reloader signs in with ("Automatic" picks working ones).
                 let servers = await AnisetteServers.shared.signInList(preferred: InstallController.shared.anisetteURL)
                 let data = try await AnisetteV1.fetchFirst(servers.split(separator: "\n").map(String.init))
                 try await session.send(["version": 1, "identifier": "AnisetteDataResponse", "anisetteData": data])
@@ -248,10 +259,10 @@ final class AltServerHost: ObservableObject {
                 log("Removed \(bundleID)", detail: nil, kind: .success)
 
             case "EnableUnsignedCodeExecutionRequest":
-                throw HostError.message(String(localized: "AltLoad can't enable JIT. Use StikDebug for that."))
+                throw HostError.message(String(localized: "Reloader can't enable JIT. Use StikDebug for that."))
 
             default:
-                throw HostError.message(String(localized: "AltLoad doesn't support \"\(identifier)\" yet."))
+                throw HostError.message(String(localized: "Reloader doesn't support \"\(identifier)\" yet."))
             }
         } catch {
             try? await session.send(Self.errorResponse(error))
@@ -290,7 +301,7 @@ final class AltServerHost: ObservableObject {
             }
         }
         try await session.send(["version": 1, "identifier": "InstallationProgressResponse", "progress": 1.0])
-        log("Installed \(bundleID ?? "an app")", detail: "Through AltLoad's AltServer (\(route)).", kind: .success)
+        log("Installed \(bundleID ?? "an app")", detail: "Through Reloader's AltServer (\(route)).", kind: .success)
     }
 
     private func runDeviceOp(_ op: [String: Any], title: String) async throws {
@@ -371,7 +382,7 @@ final class AltServerSession: @unchecked Sendable {
         var errorDescription: String? {
             switch self {
             case .closed: String(localized: "AltStore closed the connection.")
-            case .badMessage: String(localized: "AltStore sent something AltLoad couldn't read.")
+            case .badMessage: String(localized: "AltStore sent something Reloader couldn't read.")
             }
         }
     }
@@ -494,7 +505,7 @@ enum AnisetteV1 {
         case unsupported(String)
         var errorDescription: String? {
             if case .unsupported(let host) = self {
-                return String(localized: "\(host) didn't return anisette data AltStore can use. Pick another anisette server in AltLoad's Settings.")
+                return String(localized: "\(host) didn't return anisette data AltStore can use. Pick another anisette server in Reloader's Settings.")
             }
             return nil
         }

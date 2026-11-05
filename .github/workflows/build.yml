@@ -1,68 +1,75 @@
-name: Build IPA
+# Personal build of Reloader, based on AltLoad by mirazbakis
+# (https://github.com/mirazbakis/AltLoad). It builds an unsigned (ad-hoc) IPA for
+# your own devices and nothing else: no releases, no Pages/OTA, no signing packs.
+#
+# A fork must not publish builds (LICENSE.md §3), and on a public repository any
+# signed-in GitHub user can download Actions artifacts. So when the
+# IPA_PASSPHRASE secret is set, only the encrypted Reloader.ipa.enc is uploaded;
+# tools/decrypt.html turns it back into Reloader.ipa on the phone. Without the
+# secret the plain IPA is uploaded, which this workflow allows only in a private
+# repository. See docs/PERSONAL-SETUP.md.
+name: Build Reloader (personal)
 
-# Runs only when started by hand: Actions › Build IPA › Run workflow.
-# Pushes, tags and pull requests don't start it.
+# Runs only when started by hand: Actions › Build Reloader (personal) › Run workflow.
 on:
   workflow_dispatch:
-    inputs:
-      publish:
-        description: "What to do with the IPA"
-        type: choice
-        options:
-          - Build only
-          - Release
-          - Nightly
-        default: Build only
-      version:
-        description: "Release tag, e.g. v1.1.0 or v1.2.0-beta.1 (only for Release). Notes come from docs/releases/<tag>.md"
-        type: string
-        required: false
+
+# Read-only token: this workflow can't push, tag or publish a release.
+permissions:
+  contents: read
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
+  group: build-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
   build:
-    permissions:
-      contents: write
-      # To start "Sign IPAs & Deploy OTA" after a stable release.
-      actions: write
+    # GitHub-hosted macOS 27 image with Xcode 27 (GA 2026-10-15), the only one
+    # with the iOS 27 SDK. macos-26 (Xcode 26, iOS 26 SDK) is an untested fallback.
     runs-on: xcode-27
+    # The default is 360 minutes; a hang would eat the free monthly allowance.
+    timeout-minutes: 30
+    env:
+      HOMEBREW_NO_AUTO_UPDATE: "1"
+      HOMEBREW_NO_INSTALL_CLEANUP: "1"
+      HOMEBREW_NO_ANALYTICS: "1"
+      CARGO_TERM_COLOR: always
 
     steps:
-      - uses: actions/checkout@v7
-
-      - name: Check release inputs
-        if: inputs.publish == 'Release'
-        env:
-          VERSION: ${{ inputs.version }}
-        run: |
-          set -euo pipefail
-          if [[ ! "$VERSION" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-(beta|rc)\.[0-9]+)?$ ]]; then
-            echo "::error::Set version to a tag like v1.1.0 or v1.2.0-beta.1"; exit 1
-          fi
-          if [[ ! -f "docs/releases/$VERSION.md" ]]; then
-            echo "::error::Add release notes at docs/releases/$VERSION.md first"; exit 1
-          fi
-
-      - name: Select Xcode
-        uses: maxim-lobanov/setup-xcode@v1
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          xcode-version: latest
+          persist-credentials: false
+
+      # 27.1 is the image's default GA Xcode (image 20261026). 'latest' would also
+      # match betas and RCs. If a later image drops 27.1, use a 27.x it lists.
+      - name: Select Xcode
+        uses: maxim-lobanov/setup-xcode@ed7a3b1fda3918c0306d1b724322adc0b8cc0a90 # v1.7.0
+        with:
+          xcode-version: '27.1'
 
       - name: Export DEVELOPER_DIR
         run: echo "DEVELOPER_DIR=$(xcode-select -p)" >> "$GITHUB_ENV"
 
       - name: Install tools
         run: |
+          set -euo pipefail
           rustup target add aarch64-apple-ios aarch64-apple-ios-sim
           brew install xcodegen
+          xcodebuild -version
+          rustc --version
+          cargo --version
+          xcodegen --version
 
       - name: Cache Rust build
-        uses: Swatinem/rust-cache@v2
+        uses: Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0 # v2.9.3
         with:
           workspaces: core
+
+      # Core's unit tests, built and run on the Mac itself. Building them also
+      # runs core/build.rs, so its guard fails the job here, before the iOS build.
+      # No --locked: Cargo.lock is re-resolved for isideload 0.5.2.
+      - name: Test Rust core
+        run: cargo test --manifest-path core/Cargo.toml
 
       - name: Build Rust FFI xcframework
         run: bash ./scripts/build-rust.sh
@@ -70,11 +77,33 @@ jobs:
       - name: Generate Xcode project
         run: xcodegen generate
 
+      # project.yml decides the project name, the app target (built through its
+      # scheme) and the app's PRODUCT_NAME, so they're read from the generated
+      # project instead of being repeated here.
+      - name: Find the app target
+        run: |
+          set -euo pipefail
+          PROJECT="$(ls -d *.xcodeproj)"
+          xcodebuild -project "$PROJECT" -alltargets -configuration Release -sdk iphoneos \
+            -showBuildSettings -json > "$RUNNER_TEMP/settings.json"
+          python3 - "$RUNNER_TEMP/settings.json" >> "$GITHUB_ENV" <<'EOF'
+          import json, sys
+          apps = [t["buildSettings"] for t in json.load(open(sys.argv[1]))
+                  if t["buildSettings"].get("PRODUCT_TYPE") == "com.apple.product-type.application"]
+          if len(apps) != 1:
+              sys.exit(f"Expected one application target in project.yml, found {len(apps)}")
+          print(f"XCODE_SCHEME={apps[0]['TARGET_NAME']}")
+          print(f"APP_NAME={apps[0]['FULL_PRODUCT_NAME']}")
+          EOF
+          echo "XCODE_PROJECT=$PROJECT" >> "$GITHUB_ENV"
+          grep -E '^(XCODE_|APP_NAME=)' "$GITHUB_ENV"
+
       - name: Build (Release, unsigned)
         run: |
+          set -euo pipefail
           xcodebuild \
-            -project AltLoad.xcodeproj \
-            -scheme AltLoad \
+            -project "$XCODE_PROJECT" \
+            -scheme "$XCODE_SCHEME" \
             -configuration Release \
             -sdk iphoneos \
             -destination 'generic/platform=iOS' \
@@ -85,88 +114,96 @@ jobs:
             CODE_SIGN_ENTITLEMENTS="" \
             build
 
+      # Ad-hoc ("-") signature only, so signers accept the IPA. LiveContainer,
+      # iloader or Reloader re-sign it with your own certificate anyway. The
+      # widget extension is signed first, since the app's signature covers it.
       - name: Package IPA
         run: |
           set -euo pipefail
-          APP="build/dd/Build/Products/Release-iphoneos/AltLoad.app"
-          rm -rf build/Payload AltLoad.ipa
+          APP="build/dd/Build/Products/Release-iphoneos/$APP_NAME"
+          test -d "$APP" || { echo "::error::$APP was not built"; exit 1; }
+          rm -rf build/Payload Reloader.ipa
           mkdir -p build/Payload
           cp -R "$APP" build/Payload/
           find build/Payload -name '.DS_Store' -delete
-          # Ad-hoc ("fake") sign so sideload signers accept the IPA; they re-sign it anyway.
-          # The widget extension (Dynamic Island) is signed first, since the app's
-          # signature covers it.
-          for EXT in build/Payload/AltLoad.app/PlugIns/*.appex; do
+          for EXT in "build/Payload/$APP_NAME"/PlugIns/*.appex; do
             [[ -d "$EXT" ]] && codesign --force --sign - --timestamp=none --generate-entitlement-der "$EXT"
           done
-          codesign --force --sign - --timestamp=none --generate-entitlement-der build/Payload/AltLoad.app
-          codesign --verify --verbose build/Payload/AltLoad.app
-          (cd build && zip -qry -X ../AltLoad.ipa Payload)
-          ls -lh AltLoad.ipa
+          codesign --force --sign - --timestamp=none --generate-entitlement-der "build/Payload/$APP_NAME"
+          codesign --verify --verbose "build/Payload/$APP_NAME"
+          (cd build && zip -qry -X ../Reloader.ipa Payload)
+          ls -lh Reloader.ipa
+          echo "SHA-256 of Reloader.ipa (tools/decrypt.html shows the same after decrypting):" >> "$GITHUB_STEP_SUMMARY"
+          echo "\`$(shasum -a 256 Reloader.ipa | cut -d ' ' -f 1)\`" | tee -a "$GITHUB_STEP_SUMMARY"
 
       - name: Check the IPA
         run: |
           set -euo pipefail
-          unzip -tq AltLoad.ipa
+          unzip -tq Reloader.ipa
           rm -rf build/check && mkdir -p build/check
-          unzip -q AltLoad.ipa -d build/check
-          APP=build/check/Payload/AltLoad.app
+          unzip -q Reloader.ipa -d build/check
+          APP="build/check/Payload/$APP_NAME"
           test -d "$APP"
-          for key in CFBundleIdentifier CFBundleExecutable CFBundleVersion CFBundleShortVersionString MinimumOSVersion; do
+          for key in CFBundleIdentifier CFBundleDisplayName CFBundleExecutable CFBundleVersion CFBundleShortVersionString MinimumOSVersion; do
             echo "$key = $(/usr/libexec/PlistBuddy -c "Print :$key" "$APP/Info.plist")"
           done
           EXE="$APP/$(/usr/libexec/PlistBuddy -c 'Print :CFBundleExecutable' "$APP/Info.plist")"
           test -x "$EXE"
           lipo -info "$EXE"
           codesign --verify --verbose "$APP"
+          # LICENSE.md §6: the AltLoad name and the com.mirazbakis prefix belong to the official app.
+          # CFBundleName counts too: isideload names the App ID after it.
+          for PLIST in "$APP/Info.plist" "$APP"/PlugIns/*.appex/Info.plist; do
+            [[ -f "$PLIST" ]] || continue
+            ID="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleIdentifier' "$PLIST")"
+            NAME="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleDisplayName' "$PLIST" 2>/dev/null || true)"
+            BUNDLE_NAME="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleName' "$PLIST" 2>/dev/null || true)"
+            if [[ "$ID" == com.mirazbakis.* || "$NAME" == AltLoad* || "$BUNDLE_NAME" == AltLoad* ]]; then
+              echo "::error::$PLIST still uses the official identity ($ID, ${NAME:-no display name}, ${BUNDLE_NAME:-no bundle name})"
+              exit 1
+            fi
+          done
+          # LICENSE.md §1: the notice goes with every copy, this IPA included.
+          test -s "$APP/LICENSE.md"
+          test -s "$APP/THIRD_PARTY_NOTICES.md"
 
-      # archive: false uploads the .ipa itself. Zipped artifacts download as
-      # AltLoad-unsigned.zip with the IPA inside, and signers given that zip
-      # report "archive appears to be corrupted".
-      - name: Upload IPA artifact
-        uses: actions/upload-artifact@v7
-        with:
-          path: AltLoad.ipa
-          archive: false
-          if-no-files-found: error
-          retention-days: 90
-
-      # A full release marked as the latest one, or a prerelease for beta and rc
-      # tags (v1.2.0-beta.1), which leaves the latest release alone. Creates the
-      # tag on the commit this run built if it doesn't exist yet.
-      - name: Publish release
-        if: inputs.publish == 'Release'
-        uses: softprops/action-gh-release@v3
-        with:
-          tag_name: ${{ inputs.version }}
-          target_commitish: ${{ github.sha }}
-          name: AltLoad ${{ inputs.version }}
-          body_path: docs/releases/${{ inputs.version }}.md
-          files: AltLoad.ipa
-          prerelease: ${{ contains(inputs.version, '-') }}
-          draft: false
-          make_latest: ${{ !contains(inputs.version, '-') }}
-
-      # A release made with the workflow token doesn't fire the "release" event, so
-      # sign-ota.yml's own trigger never sees it. Start it here instead: it
-      # re-signs the new stable IPA and redeploys the site as github-actions[bot].
-      - name: Refresh the install site
-        if: inputs.publish == 'Release' && !contains(inputs.version, '-')
+      # The passphrase is only in this step's environment, not the job's, so
+      # actions and build scripts in the steps above never see it.
+      - name: Encrypt IPA
+        id: encrypt
         env:
-          GH_TOKEN: ${{ github.token }}
-        run: gh workflow run sign-ota.yml --repo "$GITHUB_REPOSITORY" --ref "$GITHUB_REF_NAME"
-
-      # Points the public "Nightly build" release at the commit this run built,
-      # so anyone can download the IPA without a GitHub account.
-      - name: Publish nightly build
-        if: inputs.publish == 'Nightly'
-        env:
-          GH_TOKEN: ${{ github.token }}
+          IPA_PASSPHRASE: ${{ secrets.IPA_PASSPHRASE }}
+          REPO_PRIVATE: ${{ github.event.repository.private }}
         run: |
           set -euo pipefail
-          git tag -f nightly
-          git push -f origin refs/tags/nightly
-          NOTES="Latest unsigned build of \`${GITHUB_REF_NAME}\` (commit ${GITHUB_SHA::7}). Sign it with your own tool before installing. For stable builds, use the versioned releases."
-          # Recreate the release each time so its date shows when this build was made.
-          gh release delete nightly --yes >/dev/null 2>&1 || true
-          gh release create nightly AltLoad.ipa --prerelease --title "Nightly build" --notes "$NOTES"
+          if [[ -z "${IPA_PASSPHRASE:-}" ]]; then
+            if [[ "$REPO_PRIVATE" != "true" ]]; then
+              echo "::error::This repository is public, so its artifacts can be downloaded by others. Add the IPA_PASSPHRASE secret (Settings › Secrets and variables › Actions) and run again."
+              exit 1
+            fi
+            echo "No IPA_PASSPHRASE secret: uploading the plain IPA (private repository)."
+            echo "file=Reloader.ipa" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          brew list --versions openssl@3 >/dev/null || brew install openssl@3
+          OPENSSL="$(brew --prefix openssl@3)/bin/openssl"
+          "$OPENSSL" version
+          "$OPENSSL" enc -aes-256-cbc -pbkdf2 -iter 600000 -md sha256 -salt \
+            -in Reloader.ipa -out Reloader.ipa.enc -pass env:IPA_PASSPHRASE
+          # Decrypt once before the plain IPA is deleted, so a bad file never gets uploaded.
+          "$OPENSSL" enc -d -aes-256-cbc -pbkdf2 -iter 600000 -md sha256 \
+            -in Reloader.ipa.enc -pass env:IPA_PASSPHRASE | cmp - Reloader.ipa
+          rm -f Reloader.ipa
+          ls -lh Reloader.ipa.enc
+          echo "Artifact: Reloader.ipa.enc. Decrypt it with tools/decrypt.html." >> "$GITHUB_STEP_SUMMARY"
+          echo "file=Reloader.ipa.enc" >> "$GITHUB_OUTPUT"
+
+      # archive: false uploads the file itself (the artifact is named after it),
+      # not a zip around it.
+      - name: Upload artifact
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          path: ${{ steps.encrypt.outputs.file }}
+          archive: false
+          if-no-files-found: error
+          retention-days: 3

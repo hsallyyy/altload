@@ -1,9 +1,15 @@
 import SwiftUI
+import UserNotifications
 
 @main
 struct AltLoadApp: App {
+    /// Reloader's own URL scheme: LocalDevVPN hands control back through it, and
+    /// reloader://refresh-profiles[?only=<bundle ID>] starts a profile refresh.
+    nonisolated static let urlScheme = "reloader"
+
     init() {
         PairingController.shared.registerBackgroundTask()
+        UNUserNotificationCenter.current().delegate = NotificationPresenter.shared
         // Be ready as soon as AltStore looks for an AltServer.
         AltServerHost.shared.startIfEnabled()
     }
@@ -23,9 +29,8 @@ enum AppTab: Hashable {
 struct RootView: View {
     @State private var tab: AppTab = .install
     @StateObject private var install = InstallController.shared
-    @StateObject private var updates = UpdateChecker.shared
+    @StateObject private var refresher = ProfileRefresher.shared
     @Environment(\.scenePhase) private var scenePhase
-    @Environment(\.openURL) private var openURL
 
     var body: some View {
         TabView(selection: $tab) {
@@ -46,30 +51,34 @@ struct RootView: View {
             InstallFlowView(target: target) { RootView.openPair(tab: $tab) }
                 .auroraTheme()
         }
+        // Two-factor for a profile refresh, wherever it was started from.
+        .fullScreenCover(item: $refresher.twoFactor) { prompt in
+            TwoFactorSheet(prompt: prompt) { refresher.respond($0) }
+                .auroraTheme()
+        }
         .onOpenURL { url in
-            // LocalDevVPN returns here via altload:// after switching the VPN on.
-            guard url.scheme == "altload" else { return }
+            guard url.scheme == AltLoadApp.urlScheme else { return }
+            if url.host() == "refresh-profiles" {
+                let only = URLComponents(url: url, resolvingAgainstBaseURL: false)?
+                    .queryItems?.first(where: { $0.name == "only" })?.value
+                tab = .install
+                // An idle install flow would cover the two-factor sheet. One waiting for
+                // LocalDevVPN stays open.
+                if install.flow != nil && !install.isBusy && install.phase != .needsVPN { install.finish() }
+                refresher.start(only: only.flatMap { $0.isEmpty ? nil : [$0] }, announce: true)
+                return
+            }
+            // LocalDevVPN returns here after switching the VPN on.
             install.resumeWhenVPNReady()
+            refresher.resumeIfParked()
         }
         .onChange(of: scenePhase) { _, phase in
             if phase == .active {
                 AltServerHost.shared.refresh()
-                Task { await updates.check() }
+                // Inside LiveContainer, LocalDevVPN can only send the user back to
+                // LiveContainer, so coming to the front is the signal to carry on.
+                refresher.resumeIfParked()
             }
-        }
-        .task { await updates.check() }
-        // Waits until an install isn't covering the screen.
-        .alert("Update available", isPresented: Binding(
-            get: { updates.available != nil && install.flow == nil },
-            set: { _ in }
-        )) {
-            Button("Get Update") {
-                updates.dismiss()
-                openURL(UpdateChecker.downloadPage)
-            }
-            Button("Later", role: .cancel) { updates.dismiss() }
-        } message: {
-            Text("AltLoad \(updates.available ?? "") is available. You have \(updates.currentVersion).")
         }
     }
 
@@ -82,6 +91,22 @@ struct RootView: View {
     static func openPair(tab: Binding<AppTab>) {
         tab.wrappedValue = .tools
         ToolsRouter.shared.path = [.pair]
+    }
+}
+
+/// Shows Reloader's own refresh notifications while it's open too (a Shortcut brings it
+/// to the front before the refresh finishes). Everything else stays quiet in the
+/// foreground, as it did before there was a delegate.
+final class NotificationPresenter: NSObject, UNUserNotificationCenterDelegate {
+    static let shared = NotificationPresenter()
+
+    func userNotificationCenter(
+        _ center: UNUserNotificationCenter,
+        willPresent notification: UNNotification,
+        withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void
+    ) {
+        let identifier = notification.request.identifier
+        completionHandler(identifier.hasPrefix(ProfileRefresher.notificationPrefix) ? [.banner, .list, .sound] : [])
     }
 }
 

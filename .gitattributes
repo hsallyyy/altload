@@ -1,0 +1,21 @@
+# LF everywhere, whatever core.autocrlf says. The build runs bash scripts on
+# macOS, and CRLF breaks them.
+* text=auto eol=lf
+
+# Images and app icon assets: never convert line endings or diff as text.
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.heic binary
+*.gif binary
+*.pdf binary
+*.icns binary
+*.ico binary
+*.car binary
+
+# Build outputs and signing material (ignored, but binary if ever added).
+*.ipa binary
+*.enc binary
+*.p12 binary
+*.mobileprovision binary
+*.mobiledevicepairing binary

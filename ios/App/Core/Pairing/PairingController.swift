@@ -9,7 +9,11 @@ import UserNotifications
 final class PairingController: ObservableObject {
 
     static let shared = PairingController()
-    static let taskIdentifier = (Bundle.main.bundleIdentifier ?? "com.mirazbakis.altload") + ".pairing"
+    static let taskIdentifier = (Bundle.main.bundleIdentifier ?? "com.haris.reloader") + ".pairing"
+
+    /// Shown on the other device as "Pair with Reloader", and sent as the host name when
+    /// Reloader opens its tunnel to this iPhone.
+    nonisolated static let hostName = "Reloader"
 
     enum Phase: Equatable {
         case idle
@@ -44,15 +48,14 @@ final class PairingController: ObservableObject {
     }
 
     /// iOS 27 lets the iPhone pair with a host on the network, which is how
-    /// AltLoad pairs with itself. Earlier versions need an imported pairing file.
+    /// Reloader pairs with itself. Earlier versions need an imported pairing file.
     static var canPairOnDevice: Bool {
         if #available(iOS 27, *) { return true }
         return false
     }
 
     private let bindAddress = "0.0.0.0"
-    /// Shown on the other device as "Pair with AltLoad".
-    private let hostName = "AltLoad"
+    private let hostName = PairingController.hostName
 
     private let store = PairingStore.shared
     private var netService: NetService?
@@ -60,7 +63,7 @@ final class PairingController: ObservableObject {
     private let keepAlive = KeepAlive()
 
     /// The BGContinuedProcessingTask, kept untyped because that class needs iOS 26
-    /// and AltLoad still runs on older versions (where it only imports pairing files).
+    /// and Reloader still runs on older versions (where it only imports pairing files).
     private var bgTaskObject: AnyObject?
     @available(iOS 26, *)
     private var bgTask: BGContinuedProcessingTask? {
@@ -81,7 +84,9 @@ final class PairingController: ObservableObject {
     private init() {}
 
     nonisolated func registerBackgroundTask() {
-        guard #available(iOS 26, *) else { return }
+        // Inside LiveContainer the identifier isn't one the host's Info.plist permits,
+        // and registering it anyway raises. Pairing then runs on the keep-alives alone.
+        guard #available(iOS 26, *), !Hosting.isHosted else { return }
         BGTaskScheduler.shared.register(
             forTaskWithIdentifier: PairingController.taskIdentifier,
             using: DispatchQueue.main
@@ -106,7 +111,7 @@ final class PairingController: ObservableObject {
         // the Pair screen tells the user which button to tap.
         if keepAliveAudio { keepAlive.startAudio() }
         if keepAliveLocation { keepAlive.startLocation() }
-        // Started now, while AltLoad is in front; the code is filled in later
+        // Started now, while Reloader is in front; the code is filled in later
         // from the background.
         PairingLiveActivity.shared.start(hostName: hostName)
 
@@ -117,7 +122,9 @@ final class PairingController: ObservableObject {
                 phase = .failed(Self.localNetworkMessage)
                 return
             }
-            if #available(iOS 26, *) { submitBackgroundTask() }
+            if #available(iOS 26, *) {
+                if Hosting.isHosted { runPairing(task: nil) } else { submitBackgroundTask() }
+            }
         }
     }
 
@@ -143,7 +150,7 @@ final class PairingController: ObservableObject {
     private func submitBackgroundTask() {
         let request = BGContinuedProcessingTaskRequest(
             identifier: PairingController.taskIdentifier,
-            title: "AltLoad",
+            title: "Reloader",
             subtitle: "Waiting for a device to connect…")
         request.strategy = .queue
 
@@ -267,11 +274,11 @@ final class PairingController: ObservableObject {
         PairingLiveActivity.shared.show(code: pin)
         if #available(iOS 26, *) {
             bgTask?.progress.completedUnitCount = 50
-            bgTask?.updateTitle(String(localized: "AltLoad"), subtitle: String(localized: "Enter code \(pin) on this device"))
+            bgTask?.updateTitle(String(localized: "Reloader"), subtitle: String(localized: "Enter code \(pin) on this device"))
         }
         if keepAliveAudio || keepAliveLocation {
             notify(id: "altload.pin",
-                   title: String(localized: "AltLoad pairing code"),
+                   title: String(localized: "Reloader pairing code"),
                    body: String(localized: "Enter \(pin) on this device to pair."))
         }
     }
@@ -284,7 +291,7 @@ final class PairingController: ObservableObject {
     private func postReturnNotification() {
         notify(id: "altload.done",
                title: String(localized: "Pairing complete"),
-               body: String(localized: "Return to AltLoad to export the pairing file."))
+               body: String(localized: "Return to Reloader to export the pairing file."))
     }
 
     private func notify(id: String, title: String, body: String) {
@@ -296,8 +303,11 @@ final class PairingController: ObservableObject {
         UNUserNotificationCenter.current().add(request)
     }
 
-    private static let localNetworkMessage =
-        String(localized: "Local Network permission is required. Enable it in Settings › AltLoad › Local Network, then try again.")
+    /// Inside LiveContainer the permission belongs to LiveContainer.
+    private static var localNetworkMessage: String {
+        let app = Hosting.isHosted ? Hosting.hostName : "Reloader"
+        return String(localized: "Local Network permission is required. Enable it in Settings › \(app) › Local Network, then try again.")
+    }
 }
 
 // MARK: - C callbacks

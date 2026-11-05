@@ -1,7 +1,7 @@
 // Device operations over the same LocalDevVPN → RemotePairing → RSD tunnel that
 // installs use, without an Apple ID. They back two things:
 //
-//   * AltLoad's on-device AltServer. AltStore signs apps itself and only asks
+//   * Reloader's on-device AltServer. AltStore signs apps itself and only asks
 //     AltServer to put them on the device and manage provisioning profiles.
 //     These ops do what AltServer's ALTDeviceManager does with libimobiledevice
 //     (installation_proxy, AFC, misagent), including its free-account profile
@@ -46,7 +46,9 @@ use super::{
 /// `request_json`:
 ///   {"op":"install_app","path":"/…/App.ipa" | "/…/App.app","activeProfiles":["com.x",…]|null}
 ///   (every op also takes "protect":["com.x",…]: bundle IDs whose profiles are never
-///   removed, i.e. AltLoad itself, which AltStore doesn't know about)
+///   removed, i.e. Reloader itself and the LiveContainer it runs in, which AltStore
+///   doesn't know about. Their extensions and every LiveContainer are kept as well;
+///   see `is_protected`.)
 ///   {"op":"install_profiles","paths":["/…/a.mobileprovision",…],"activeProfiles":[…]|null}
 ///   {"op":"remove_profiles","bundleIds":["com.x",…]}
 ///   {"op":"remove_app","bundleId":"com.x"}
@@ -87,7 +89,7 @@ pub unsafe extern "C" fn altload_device_run(
         Ok(v) => v,
         Err(e) => return fail(e),
     };
-    let host_name = opt(c.host_name, "AltLoad");
+    let host_name = opt(c.host_name, "Reloader");
     let mut endpoints = Vec::new();
     if !c.endpoints.is_null() {
         for i in 0..c.endpoint_count {
@@ -153,24 +155,31 @@ async fn run(
             }
             cbs.progress("Installing profiles…", -1.0);
             let mut mis = misagent(&mut adapter, &mut handshake).await?;
-            match active {
-                Some(active) => {
-                    // Remove every non-active free profile, including old copies of
-                    // the ones we're about to install.
-                    let mut keep = active;
-                    for p in &profiles {
-                        keep.remove(&p.bundle_id);
-                    }
-                    keep.extend(protect.iter().cloned());
-                    remove_profiles(&mut mis, None, Some(&keep), true).await?;
+            let replace_after = active.is_none();
+            if let Some(active) = active {
+                // Remove every non-active free profile, including old copies of
+                // the ones we're about to install.
+                let mut keep = active;
+                for p in &profiles {
+                    keep.remove(&p.bundle_id);
                 }
-                None => {
-                    let ids: HashSet<String> = profiles.iter().map(|p| p.bundle_id.clone()).collect();
-                    remove_profiles(&mut mis, Some(&ids), None, false).await?;
-                }
+                keep.extend(protect.iter().cloned());
+                remove_profiles(&mut mis, None, Some(&keep), true).await?;
             }
+            let installed: HashSet<String> = profiles.iter().map(|p| p.uuid.clone()).collect();
+            let ids: HashSet<String> = profiles
+                .iter()
+                .map(|p| p.bundle_id.clone())
+                .filter(|id| !is_protected(&protect, id))
+                .collect();
             for p in profiles {
                 mis.install(p.data).await.map_err(|e| err("Couldn't install a profile", e))?;
+            }
+            // Without an active list, older copies of the same apps come off only once
+            // the new ones are in, so no app is ever left without a profile. Apps in
+            // `protect` keep every copy.
+            if replace_after {
+                remove_replaced(&mut mis, &ids, &installed).await?;
             }
             Ok(serde_json::json!({ "ok": true }))
         }
@@ -178,7 +187,7 @@ async fn run(
             let ids: HashSet<String> = string_set(&request, "bundleIds")
                 .unwrap_or_default()
                 .into_iter()
-                .filter(|id| !protect.contains(id))
+                .filter(|id| !is_protected(&protect, id))
                 .collect();
             cbs.progress("Removing profiles…", -1.0);
             let mut mis = misagent(&mut adapter, &mut handshake).await?;
@@ -187,6 +196,9 @@ async fn run(
         }
         "remove_app" => {
             let bundle_id = string_field(&request, "bundleId")?;
+            if is_protected(&protect, &bundle_id) {
+                return Err(format!("{bundle_id} is LiveContainer or Reloader itself, so Reloader doesn't remove it."));
+            }
             cbs.progress("Removing app…", -1.0);
             let mut ip = InstallationProxyClient::connect_rsd(&mut adapter, &mut handshake)
                 .await
@@ -335,7 +347,8 @@ async fn install_unpacked(
     if active.is_some() || main_is_free {
         cbs.progress("Making room for the app…", -1.0);
         let mut mis = misagent(adapter, handshake).await?;
-        // `protect` (AltLoad itself) stays: AltStore's active list doesn't include it.
+        // `protect` (Reloader and its host) and LiveContainer stay: AltStore's active list
+        // doesn't include them.
         let removed = remove_profiles(&mut mis, None, Some(protect), true).await?;
         for (bundle_id, profile) in removed {
             if active.as_ref().map_or(true, |a| a.contains(&bundle_id)) {
@@ -461,6 +474,39 @@ async fn misagent(adapter: &mut AdapterHandle, handshake: &mut RsdHandshake) -> 
         .map_err(|e| err("Couldn't reach misagent", e))
 }
 
+/// Whether `bundle_id` is one of `ids` or an extension of one ("<id>.<suffix>"), or is
+/// LiveContainer. iloader's LiveContainer is never in AltStore's active list, and Swift
+/// only knows its bundle ID when Reloader runs inside it, so AltStore's cleanup always
+/// leaves it (and its extensions' profiles) alone.
+fn is_protected(ids: &HashSet<String>, bundle_id: &str) -> bool {
+    let id = bundle_id.to_lowercase();
+    id.starts_with("com.kdt.livecontainer")
+        || ids.iter().any(|p| {
+            let p = p.to_lowercase();
+            id == p || id.strip_prefix(&p).is_some_and(|rest| rest.starts_with('.'))
+        })
+}
+
+/// Removes the profiles of `ids` except those in `keep` (UUIDs, the ones just installed).
+async fn remove_replaced(
+    mis: &mut MisagentClient,
+    ids: &HashSet<String>,
+    keep: &HashSet<String>,
+) -> Result<(), String> {
+    let all = mis
+        .copy_all()
+        .await
+        .map_err(|e| err("Couldn't list provisioning profiles", e))?;
+    for profile in all.into_iter().filter_map(Profile::parse) {
+        if ids.contains(&profile.bundle_id) && !keep.contains(&profile.uuid) {
+            mis.remove(&profile.uuid)
+                .await
+                .map_err(|e| err("Couldn't remove a provisioning profile", e))?;
+        }
+    }
+    Ok(())
+}
+
 /// AltServer's removeAllProfilesForBundleIdentifiers:excludingBundleIdentifiers:limitedToFreeProfiles:.
 /// Returns the newest removed profile per bundle ID, so callers can put some back.
 async fn remove_profiles(
@@ -484,7 +530,7 @@ async fn remove_profiles(
         if include.is_some_and(|ids| !ids.contains(&profile.bundle_id)) {
             continue;
         }
-        if exclude.is_some_and(|ids| ids.contains(&profile.bundle_id)) {
+        if exclude.is_some_and(|ids| is_protected(ids, &profile.bundle_id)) {
             // Keep only the newest excluded profile per bundle ID.
             match kept.remove(&profile.bundle_id) {
                 Some(previous) => {
@@ -586,7 +632,7 @@ async fn open_container(
     bundle_id: &str,
 ) -> Result<AfcClient, String> {
     // The whole container works for apps signed with a development profile
-    // (everything AltLoad, AltStore or Catalyst installs). Documents-only access
+    // (everything Reloader, AltStore or Catalyst installs). Documents-only access
     // is the fallback for apps with file sharing turned on.
     let container = match HouseArrestClient::connect_rsd(adapter, handshake).await {
         Ok(client) => client.vend_container(bundle_id).await,
@@ -601,7 +647,7 @@ async fn open_container(
             };
             documents.map_err(|e| {
                 format!(
-                    "iOS won't let AltLoad into this app ({container_error}; {e}). Only apps signed \
+                    "iOS won't let Reloader into this app ({container_error}; {e}). Only apps signed \
                      with a development certificate, or with file sharing on, can receive files."
                 )
             })
@@ -789,4 +835,21 @@ pub extern "C" fn altload_location_update(latitude: f64, longitude: f64) {
 #[no_mangle]
 pub extern "C" fn altload_location_stop() {
     LOCATION_RUNNING.store(false, Ordering::SeqCst);
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn protected_ids_cover_their_extensions_and_every_live_container() {
+        let protect: HashSet<String> = ["com.haris.reloader".to_string()].into();
+        assert!(is_protected(&protect, "com.haris.reloader"));
+        assert!(is_protected(&protect, "com.haris.reloader.widgets"));
+        assert!(!is_protected(&protect, "com.haris.reloaderx"));
+        // Swift doesn't know iloader's LiveContainer when Reloader runs as a normal app.
+        assert!(is_protected(&HashSet::new(), "com.kdt.livecontainer.ABCDE12345"));
+        assert!(is_protected(&protect, "com.kdt.livecontainer.ABCDE12345.LiveProcess"));
+        assert!(!is_protected(&protect, "com.rileytestut.AltStore.ABCDE12345"));
+    }
 }

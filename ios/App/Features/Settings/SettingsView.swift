@@ -176,7 +176,7 @@ struct SettingsView: View {
             .buttonStyle(AltLoadButtonStyle(prominent: false))
             .disabled(anisetteReset)
 
-            footnote(String(localized: "Apple needs device-identity headers (\"anisette\") to sign in; the server never sees your password. Automatic checks which servers answer and moves on to the next one if Apple refuses a server's data. Reset if sign-in keeps failing."))
+            footnote(String(localized: "Apple needs device-identity headers (\"anisette\") to sign in; the server never sees your password. Automatic checks which servers answer and moves on to the next one if Apple refuses a server's data. Profile refreshes always sign in through the one server picked here, or jkcoxson's for Automatic, so Apple keeps seeing the same device. Reset if sign-in keeps failing."))
         }
     }
 
@@ -198,7 +198,7 @@ struct SettingsView: View {
                     .frame(maxWidth: .infinity)
             }
             .buttonStyle(AltLoadButtonStyle(prominent: false))
-            footnote(String(localized: "Installs go through LocalDevVPN, which loops this address back into the iPhone. Only change it if you changed LocalDevVPN's peer IP."))
+            footnote(String(localized: "Installs and refreshes go through LocalDevVPN, which loops this address back into the iPhone. Only change it if you changed LocalDevVPN's peer IP."))
         }
     }
 
@@ -229,7 +229,7 @@ struct SettingsView: View {
                 Label(String(localized: "Use Official Sources"), systemImage: "arrow.uturn.backward").frame(maxWidth: .infinity)
             }
             .buttonStyle(AltLoadButtonStyle(prominent: false))
-            footnote(String(localized: "AltLoad installs the newest build each source lists. If SideStore's source or repository is down, it falls back to a mirror, its GitHub releases and then a known-good build."))
+            footnote(String(localized: "Reloader installs the newest build each source lists. If SideStore's source or repository is down, it falls back to a mirror, its GitHub releases and then a known-good build."))
         }
     }
 

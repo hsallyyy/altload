@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// Status and settings for AltLoad's on-device AltServer.
+/// Status and settings for Reloader's on-device AltServer.
 struct AltServerView: View {
     @ObservedObject private var host = AltServerHost.shared
     @ObservedObject private var pairings = PairingStore.shared
@@ -39,12 +39,11 @@ struct AltServerView: View {
                         Label(String(localized: "Keep running in background"), systemImage: "speaker.wave.2")
                             .font(.system(size: 17, weight: .semibold))
                     }
-                    .disabled(!host.isEnabled)
                     .padding(.horizontal, 16)
                     .frame(minHeight: 52)
                 }
                 .cardSurface(radius: 18)
-                Text("iOS pauses apps in the background. Keep AltLoad open while AltStore installs or refreshes, or turn on background mode (it plays inaudible audio).")
+                Text("iOS pauses apps in the background. Keep Reloader open while AltStore installs or refreshes, or turn on background mode (it plays inaudible audio). Profile refreshes keep Reloader running by themselves. AltServer is off by default because AltStore removes the profiles of apps it doesn't list, LiveContainer's included.")
                     .font(.system(size: 13))
                     .foregroundStyle(Aurora.secondaryText)
                     .padding(.horizontal, 4)
@@ -63,7 +62,7 @@ struct AltServerView: View {
                         StatusRow(
                             title: "Wi-Fi (Bonjour)",
                             detail: host.wifiState == String(localized: "Advertising")
-                                ? String(localized: "Advertised as AltLoad with AltStore's server ID")
+                                ? String(localized: "Advertised as Reloader with AltStore's server ID")
                                 : host.wifiState,
                             state: host.wifiState == String(localized: "Advertising") ? .done : .pending)
                         StatusRow(
@@ -100,7 +99,7 @@ struct AltServerView: View {
                 }
             }
 
-            Text("AltStore signs apps with its own Apple ID sign-in. AltLoad's AltServer puts them on this iPhone, manages their profiles and gives AltStore anisette data from your anisette server. JIT isn't supported.")
+            Text("AltStore signs apps with its own Apple ID sign-in. Reloader's AltServer puts them on this iPhone, manages their profiles and gives AltStore anisette data from your anisette server. JIT isn't supported.")
                 .font(.system(size: 13))
                 .foregroundStyle(Aurora.secondaryText)
                 .multilineTextAlignment(.center)

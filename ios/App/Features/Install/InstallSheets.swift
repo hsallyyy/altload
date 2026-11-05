@@ -24,7 +24,7 @@ struct SignInSheet: View {
                     SecureField(String(localized: "Password"), text: $password)
                         .textContentType(.password)
                 } footer: {
-                    Text("Your password goes only to Apple. Apple also requires device-identity headers (\"anisette\"), which AltLoad gets from \(host). You can use a secondary Apple ID if you prefer.")
+                    Text("Your password goes only to Apple. Apple also requires device-identity headers (\"anisette\"), which Reloader gets from \(host). Use the Apple ID iloader signs with on your PC.")
                 }
                 .auroraRow()
 
@@ -127,63 +127,5 @@ struct TwoFactorSheet: View {
             return String(localized: "Enter the code sent to \(number.number)")
         }
         return String(localized: "Enter the code shown on your other Apple devices")
-    }
-}
-
-// MARK: - Certificate limit
-
-struct RevokeSheet: View {
-    let prompt: RevokePrompt
-    let respond: (String) -> Void
-    @State private var selected: Set<String> = []
-
-    var body: some View {
-        NavigationStack {
-            List {
-                Section {
-                    ForEach(prompt.certificates) { cert in
-                        Button {
-                            if selected.contains(cert.serial) {
-                                selected.remove(cert.serial)
-                            } else {
-                                selected.insert(cert.serial)
-                            }
-                        } label: {
-                            HStack {
-                                VStack(alignment: .leading, spacing: 2) {
-                                    Text(cert.machine.isEmpty ? "Unknown machine" : cert.machine)
-                                        .font(.headline)
-                                    Text(cert.name.isEmpty ? cert.serial : cert.name)
-                                        .font(.caption)
-                                        .foregroundStyle(.secondary)
-                                }
-                                Spacer()
-                                Image(systemName: selected.contains(cert.serial) ? "checkmark.circle.fill" : "circle")
-                                    .foregroundStyle(Aurora.accent)
-                            }
-                        }
-                        .foregroundStyle(.primary)
-                    }
-                } footer: {
-                    Text("Your Apple ID has reached its limit of development certificates. Choose one to revoke. Apps signed with it by another computer or tool will stop opening until they're signed again.")
-                }
-                .auroraRow()
-            }
-            .auroraListBackground()
-            .navigationTitle(String(localized: "Certificate Limit"))
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button(String(localized: "Cancel"), role: .cancel) { respond("abort") }
-                }
-                ToolbarItem(placement: .confirmationAction) {
-                    Button(String(localized: "Revoke"), role: .destructive) {
-                        let data = (try? JSONEncoder().encode(Array(selected))) ?? Data("[]".utf8)
-                        respond(String(data: data, encoding: .utf8) ?? "[]")
-                    }
-                    .disabled(selected.isEmpty)
-                }
-            }
-        }
     }
 }

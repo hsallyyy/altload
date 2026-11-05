@@ -1,6 +1,20 @@
 // Apple ID sign-in with anisette server failover.
 
 use super::*;
+use isideload::anisette::AnisetteClientInfo;
+
+/// iloader 2.4.1's default anisette server, a Mac-ADI one. Every Rust fallback uses it.
+pub(super) const DEFAULT_ANISETTE: &str = "https://mac-ani.jkcoxson.com";
+
+/// Sent in place of the anisette server's own client info, exactly as iloader 2.4.1
+/// does. The public servers still report a 10.12.6 Mac, and since isideload 0.5.2 the
+/// URL bag request and every GrandSlam request carry this.
+const CLIENT_INFO: &str = "<Mac15,7> <macOS;27.0;26A5378j> <com.apple.AuthKit/1 (com.apple.akd/1.0)>";
+const CLIENT_USER_AGENT: &str = "akd/1.0 CFNetwork/811.5.4";
+
+/// How long a 2FA prompt waits for an answer, as in iloader. A refresh started by a
+/// Shortcut with nobody there gives up instead of hanging.
+const TWO_FACTOR_TIMEOUT: Duration = Duration::from_secs(120);
 
 /// Signs in to the Apple ID (GSA + anisette, 2FA through the prompt callback)
 /// and opens a developer-services session. Shared by installs and the
@@ -11,6 +25,9 @@ use super::*;
 /// -80045 and the like) one more is tried. So is -22406, which Apple also sends
 /// for anisette data it won't accept. 2FA problems and cancellations stop right
 /// away so the account isn't hammered.
+///
+/// The Apple ID is trimmed and lowercased, as iloader does, so its pause record and
+/// signing key are the same however it was typed.
 pub(super) async fn sign_in(
     apple_id: &str,
     password: &str,
@@ -18,12 +35,14 @@ pub(super) async fn sign_in(
     cbs: Callbacks,
     replies: Replies,
 ) -> Result<DeveloperSession, String> {
+    let apple_id = apple_id.trim().to_lowercase();
+    let apple_id = apple_id.as_str();
     let urls: Vec<&str> = anisette_urls
         .split(['\n', ',', ' '])
         .map(str::trim)
         .filter(|u| !u.is_empty())
         .collect();
-    let urls = if urls.is_empty() { vec!["https://ani.jkcoxson.com"] } else { urls };
+    let urls = if urls.is_empty() { vec![DEFAULT_ANISETTE] } else { urls };
 
     // v1.3.0 saved the developer token here; it's no longer used, so don't keep it.
     let _ = FileStorage::new("session", None).delete("xcode");
@@ -77,7 +96,7 @@ pub(super) async fn sign_in(
     let last = failures.last().cloned().unwrap_or_default();
     if failures.len() > 1 {
         Err(format!(
-            "Apple ID sign-in failed with every anisette server AltLoad tried.\n\n{}",
+            "Apple ID sign-in failed with every anisette server Reloader tried.\n\n{}",
             failures.join("\n")
         ))
     } else {
@@ -93,34 +112,54 @@ pub(super) async fn sign_in_with(
     replies: Replies,
 ) -> Result<DeveloperSession, (String, String)> {
     // Each server provisions its own anisette identity, so each gets its own folder.
+    // The folder is new with the macOS 27 client info: identities provisioned under
+    // the old one (in anisette/, or the Keychain before that) aren't reused.
     let anisette = RemoteV3AnisetteProvider::default()
         .map_err(|e| (err("Anisette setup failed", &e), format!("anisette {e:?}")))?
         .set_url(anisette_url)
+        .set_serial_number("0".to_string())
+        .set_client_info_override(Some(AnisetteClientInfo {
+            client_info: CLIENT_INFO.to_string(),
+            user_agent: CLIENT_USER_AGENT.to_string(),
+        }))
         .set_storage(Box::new(FileStorage::new(
-            &format!("anisette/{}", host_of(anisette_url)),
-            Some("AltLoad.anisette"),
+            &format!("anisette-mac27/{}", host_of(anisette_url)),
+            None,
         )));
 
-    let two_factor = move |params: TwoFactorCallbackParams| {
-        let replies = replies.clone();
-        let json = two_factor_json(&params);
-        async move {
-            cbs.prompt(PROMPT_TWO_FACTOR, &json);
-            let reply = replies
-                .lock()
-                .await
-                .recv()
-                .await
-                .unwrap_or_else(|| "abort".to_string());
-            Ok::<_, rootcause::Report>(parse_two_factor(&reply))
+    let timed_out = Arc::new(AtomicBool::new(false));
+    let two_factor = {
+        let timed_out = timed_out.clone();
+        move |params: TwoFactorCallbackParams| {
+            let replies = replies.clone();
+            let timed_out = timed_out.clone();
+            let json = two_factor_json(&params);
+            async move {
+                cbs.prompt(PROMPT_TWO_FACTOR, &json);
+                let wait = async { replies.lock().await.recv().await };
+                let reply = match tokio::time::timeout(TWO_FACTOR_TIMEOUT, wait).await {
+                    Ok(reply) => reply,
+                    Err(_) => {
+                        timed_out.store(true, Ordering::SeqCst);
+                        None
+                    }
+                };
+                Ok::<_, rootcause::Report>(parse_two_factor(&reply.unwrap_or_else(|| "abort".to_string())))
+            }
         }
     };
 
-    let mut account = AppleAccount::builder(apple_id)
+    let login = AppleAccount::builder(apple_id)
         .anisette_provider(anisette)
         .login(password, two_factor)
-        .await
-        .map_err(|e| (err("Apple ID sign-in failed", &e), format!("{e} {e:?}")))?;
+        .await;
+    let mut account = match login {
+        Ok(account) => account,
+        Err(_) if timed_out.load(Ordering::SeqCst) => {
+            return Err((TWO_FACTOR_TIMED_OUT.to_string(), "2fa timed out".to_string()));
+        }
+        Err(e) => return Err((err("Apple ID sign-in failed", &e), format!("{e} {e:?}"))),
+    };
 
     DeveloperSession::from_account(&mut account)
         .await
@@ -129,7 +168,7 @@ pub(super) async fn sign_in_with(
 
 // MARK: - Limits
 //
-// Apple can lock an account after repeated failed sign-ins, so AltLoad remembers them
+// Apple can lock an account after repeated failed sign-ins, so Reloader remembers them
 // across launches and stops sending the password for a while.
 
 /// Each server is a different device to Apple, so one try only uses a couple.
@@ -141,9 +180,10 @@ const PAUSE_KEY: &str = "pause";
 
 // AppleIDStore.forgetPasswordIfRejected looks for LOCKED's wording. This one
 // mustn't match it, since the password may well be right.
-const PASSWORD_OR_ANISETTE: &str = "Apple ID sign-in failed: Apple turned down the sign-in with the anisette servers AltLoad tried. Apple answers the same way for a wrong password and for anisette data it won't accept, so check your Apple ID and password, then pick a different server in Settings › Anisette. Too many failed tries can lock your account.";
+const PASSWORD_OR_ANISETTE: &str = "Apple ID sign-in failed: Apple turned down the sign-in with the anisette servers Reloader tried. Apple answers the same way for a wrong password and for anisette data it won't accept, so check your Apple ID and password, then pick a different server in Settings › Anisette. Too many failed tries can lock your account.";
 const LOCKED: &str = "Apple ID sign-in failed: Apple says this Apple ID is locked. Unlock it at iforgot.apple.com, then sign in again.";
 const RATE_LIMITED: &str = "Apple ID sign-in failed: Apple is receiving too many requests from this account. Try again later.";
+const TWO_FACTOR_TIMED_OUT: &str = "Apple ID sign-in failed: no two-factor code was entered within 2 minutes. Try again when you can enter it.";
 
 fn pause_storage() -> FileStorage {
     FileStorage::new("signin", None)
@@ -164,7 +204,7 @@ fn check_pause(apple_id: &str) -> Result<(), String> {
     if until > now {
         let minutes = (until - now).div_ceil(60);
         return Err(format!(
-            "Apple ID sign-in failed: AltLoad paused sign-ins for this Apple ID to help keep it from being locked. Try again in {minutes} min."
+            "Apple ID sign-in failed: Reloader paused sign-ins for this Apple ID to help keep it from being locked. Try again in {minutes} min."
         ));
     }
     Ok(())
@@ -258,6 +298,12 @@ mod tests {
         // AppleIDStore deletes the saved password on this wording; -22406 alone can't prove it's wrong.
         assert!(!PASSWORD_OR_ANISETTE.contains("Apple ID or password is incorrect"));
         assert!(LOCKED.contains("Apple ID is locked"));
+    }
+
+    #[test]
+    fn a_two_factor_timeout_stops_without_trying_another_server() {
+        assert_eq!(classify_failure("2fa timed out"), SignInFailure::Other);
+        assert!(!TWO_FACTOR_TIMED_OUT.contains("Apple ID is locked"));
     }
 
     #[test]

@@ -91,7 +91,7 @@ pub unsafe extern "C" fn altload_run_host(
     *out = AltLoadResult::empty();
 
     let bind_addr = opt_str(bind_addr, "0.0.0.0");
-    let name = opt_str(name, "AltLoad");
+    let name = opt_str(name, "Reloader");
     let model = opt_str(model, "Mac17,7");
     let out_path = opt_str(out_path, "rp_pairing_file.plist");
     let cbs = Callbacks {

@@ -5,69 +5,22 @@
   ],
   "fill": {
     "linear-gradient": [
-      "display-p3:0.03500,0.06500,0.12000,1.00000",
-      "display-p3:0.02500,0.23000,0.15500,1.00000"
+      "display-p3:0.17000,0.06000,0.32000,1.00000",
+      "display-p3:0.77000,0.33000,0.18000,1.00000"
     ]
   },
   "groups": [
     {
-      "blur-material": 0.3,
-      "layers": [
-        {
-          "image-name": "Sparkle.svg",
-          "name": "Sparkle",
-          "position": {
-            "scale": 1,
-            "translation-in-points": [
-              258,
-              -266
-            ]
-          }
-        },
-        {
-          "image-name": "Sparkle.svg",
-          "name": "Sparkle Small",
-          "position": {
-            "scale": 0.45,
-            "translation-in-points": [
-              -244,
-              210
-            ]
-          }
-        }
-      ],
-      "shadow": {
-        "kind": "neutral",
-        "opacity": 0.4
-      },
-      "specular": "inside",
-      "translucency": {
-        "enabled": false,
-        "value": 0.5
-      }
-    },
-    {
       "blur-material": 0.4,
       "layers": [
         {
-          "image-name": "Arrow.svg",
-          "name": "Arrow",
+          "image-name": "Cycle.svg",
+          "name": "Cycle",
           "position": {
             "scale": 1,
             "translation-in-points": [
               0,
-              -120
-            ]
-          }
-        },
-        {
-          "image-name": "Tray.svg",
-          "name": "Tray",
-          "position": {
-            "scale": 1,
-            "translation-in-points": [
-              0,
-              162
+              0
             ]
           }
         }
@@ -80,34 +33,6 @@
       "translucency": {
         "enabled": true,
         "value": 0.3
-      }
-    },
-    {
-      "layers": [
-        {
-          "fill": {
-            "solid": "extended-gray:1.00000,0.20000"
-          },
-          "glass": false,
-          "image-name": "Orbit.svg",
-          "name": "Orbit",
-          "position": {
-            "scale": 1,
-            "translation-in-points": [
-              0,
-              -12
-            ]
-          }
-        }
-      ],
-      "shadow": {
-        "kind": "neutral",
-        "opacity": 0.3
-      },
-      "specular": false,
-      "translucency": {
-        "enabled": false,
-        "value": 0.5
       }
     }
   ],

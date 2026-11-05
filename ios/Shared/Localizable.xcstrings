@@ -1,37 +1,37 @@
 {
   "sourceLanguage": "en",
   "strings": {
-    "\n\nApple refused the sign-in data from the anisette servers AltLoad tried. Open Settings › Anisette, tap Reset Anisette Data, and try again in a few minutes.": {
+    "\n\nApple refused the sign-in data from the anisette servers Reloader tried. Open Settings › Anisette, tap Reset Anisette Data, and try again in a few minutes.": {
       "extractionState": "manual",
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "\n\nApple hat die Anmeldedaten der von AltLoad versuchten Anisette-Server abgelehnt. Öffne Einstellungen › Anisette, tippe auf „Anisette-Daten zurücksetzen“ und versuche es in ein paar Minuten erneut."
+            "value": "\n\nApple hat die Anmeldedaten der von Reloader versuchten Anisette-Server abgelehnt. Öffne Einstellungen › Anisette, tippe auf „Anisette-Daten zurücksetzen“ und versuche es in ein paar Minuten erneut."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "\n\nApple a refusé les données de connexion des serveurs anisette essayés par AltLoad. Ouvrez Réglages › Anisette, touchez Réinitialiser les données Anisette, puis réessayez dans quelques minutes."
+            "value": "\n\nApple a refusé les données de connexion des serveurs anisette essayés par Reloader. Ouvrez Réglages › Anisette, touchez Réinitialiser les données Anisette, puis réessayez dans quelques minutes."
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "\n\nApple ha rifiutato i dati di accesso dei server anisette provati da AltLoad. Apri Impostazioni › Anisette, tocca Reimposta dati Anisette e riprova tra qualche minuto."
+            "value": "\n\nApple ha rifiutato i dati di accesso dei server anisette provati da Reloader. Apri Impostazioni › Anisette, tocca Reimposta dati Anisette e riprova tra qualche minuto."
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "\n\nApple отклонил данные для входа с серверов anisette, которые пробовал AltLoad. Откройте «Настройки › Anisette», нажмите «Сбросить данные Anisette» и повторите через несколько минут."
+            "value": "\n\nApple отклонил данные для входа с серверов anisette, которые пробовал Reloader. Откройте «Настройки › Anisette», нажмите «Сбросить данные Anisette» и повторите через несколько минут."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "\n\nApple 拒绝了 AltLoad 尝试的 anisette 服务器提供的登录数据。请打开“设置 › Anisette”，轻点“重置 Anisette 数据”，几分钟后再试。"
+            "value": "\n\nApple 拒绝了 Reloader 尝试的 anisette 服务器提供的登录数据。请打开“设置 › Anisette”，轻点“重置 Anisette 数据”，几分钟后再试。"
           }
         }
       }
@@ -141,37 +141,37 @@
         }
       }
     },
-    "%@ didn't return anisette data AltStore can use. Pick another anisette server in AltLoad's Settings.": {
+    "%@ didn't return anisette data AltStore can use. Pick another anisette server in Reloader's Settings.": {
       "extractionState": "manual",
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "%@ hat keine Anisette-Daten geliefert, die AltStore verwenden kann. Wähle in den Einstellungen von AltLoad einen anderen Anisette-Server."
+            "value": "%@ hat keine Anisette-Daten geliefert, die AltStore verwenden kann. Wähle in den Einstellungen von Reloader einen anderen Anisette-Server."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "%@ n'a pas renvoyé de données anisette utilisables par AltStore. Choisissez un autre serveur anisette dans les réglages d'AltLoad."
+            "value": "%@ n'a pas renvoyé de données anisette utilisables par AltStore. Choisissez un autre serveur anisette dans les réglages d'Reloader."
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "%@ non ha restituito dati anisette utilizzabili da AltStore. Scegli un altro server anisette nelle impostazioni di AltLoad."
+            "value": "%@ non ha restituito dati anisette utilizzabili da AltStore. Scegli un altro server anisette nelle impostazioni di Reloader."
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "%@ не вернул данные anisette, которые может использовать AltStore. Выберите другой сервер anisette в настройках AltLoad."
+            "value": "%@ не вернул данные anisette, которые может использовать AltStore. Выберите другой сервер anisette в настройках Reloader."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "%@ 未返回 AltStore 可用的 anisette 数据。请在 AltLoad 设置中选择其他 anisette 服务器。"
+            "value": "%@ 未返回 AltStore 可用的 anisette 数据。请在 Reloader 设置中选择其他 anisette 服务器。"
           }
         }
       }
@@ -351,37 +351,37 @@
         }
       }
     },
-    "%@'s repository is down right now and AltLoad has no copy saved. Try again later, or download the IPA elsewhere and pick it with Install IPA from Files.": {
+    "%@'s repository is down right now and Reloader has no copy saved. Try again later, or download the IPA elsewhere and pick it with Install IPA from Files.": {
       "extractionState": "manual",
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Das Repository von %@ ist gerade nicht erreichbar und AltLoad hat keine Kopie gespeichert. Versuche es später erneut oder lade die IPA anderswo herunter und wähle sie über „IPA aus Dateien installieren“ aus."
+            "value": "Das Repository von %@ ist gerade nicht erreichbar und Reloader hat keine Kopie gespeichert. Versuche es später erneut oder lade die IPA anderswo herunter und wähle sie über „IPA aus Dateien installieren“ aus."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Le dépôt de %@ est indisponible pour le moment et AltLoad n'en a aucune copie. Réessayez plus tard, ou téléchargez l'IPA ailleurs et choisissez-le avec Installer un IPA depuis Fichiers."
+            "value": "Le dépôt de %@ est indisponible pour le moment et Reloader n'en a aucune copie. Réessayez plus tard, ou téléchargez l'IPA ailleurs et choisissez-le avec Installer un IPA depuis Fichiers."
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "Il repository di %@ non è disponibile al momento e AltLoad non ne ha una copia salvata. Riprova più tardi, oppure scarica l'IPA altrove e sceglilo con Installa IPA da File."
+            "value": "Il repository di %@ non è disponibile al momento e Reloader non ne ha una copia salvata. Riprova più tardi, oppure scarica l'IPA altrove e sceglilo con Installa IPA da File."
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Репозиторий %@ сейчас недоступен, а сохранённой копии в AltLoad нет. Повторите позже или скачайте IPA в другом месте и выберите его через «Установить IPA из Файлов»."
+            "value": "Репозиторий %@ сейчас недоступен, а сохранённой копии в Reloader нет. Повторите позже или скачайте IPA в другом месте и выберите его через «Установить IPA из Файлов»."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "%@ 的仓库目前无法访问，AltLoad 也没有保存副本。请稍后再试，或在其他地方下载 IPA，然后通过“从文件安装 IPA”选择。"
+            "value": "%@ 的仓库目前无法访问，Reloader 也没有保存副本。请稍后再试，或在其他地方下载 IPA，然后通过“从文件安装 IPA”选择。"
           }
         }
       }
@@ -1261,37 +1261,37 @@
         }
       }
     },
-    "Advertised as AltLoad with AltStore's server ID": {
+    "Advertised as Reloader with AltStore's server ID": {
       "extractionState": "manual",
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Als AltLoad mit der Server-ID von AltStore angekündigt"
+            "value": "Als Reloader mit der Server-ID von AltStore angekündigt"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Annoncé comme AltLoad avec l'identifiant de serveur d'AltStore"
+            "value": "Annoncé comme Reloader avec l'identifiant de serveur d'AltStore"
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "Annunciato come AltLoad con l'ID server di AltStore"
+            "value": "Annunciato come Reloader con l'ID server di AltStore"
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Объявлен как AltLoad с ID сервера AltStore"
+            "value": "Объявлен как Reloader с ID сервера AltStore"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "以 AltLoad 名义广播，并使用 AltStore 的服务器 ID"
+            "value": "以 Reloader 名义广播，并使用 AltStore 的服务器 ID"
           }
         }
       }
@@ -1436,37 +1436,37 @@
         }
       }
     },
-    "AltLoad %@ is available. You have %@.": {
+    "Reloader %@ is available. You have %@.": {
       "extractionState": "manual",
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "AltLoad %@ ist verfügbar. Du hast Version %@."
+            "value": "Reloader %@ ist verfügbar. Du hast Version %@."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "AltLoad %@ est disponible. Vous avez la version %@."
+            "value": "Reloader %@ est disponible. Vous avez la version %@."
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "AltLoad %@ è disponibile. Hai la versione %@."
+            "value": "Reloader %@ è disponibile. Hai la versione %@."
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Доступен AltLoad %@. У вас версия %@."
+            "value": "Доступен Reloader %@. У вас версия %@."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "AltLoad %@ 现已推出。你的版本是 %@。"
+            "value": "Reloader %@ 现已推出。你的版本是 %@。"
           }
         }
       }
@@ -1506,422 +1506,422 @@
         }
       }
     },
-    "AltLoad can't enable JIT. Use StikDebug for that.": {
+    "Reloader can't enable JIT. Use StikDebug for that.": {
       "extractionState": "manual",
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "AltLoad kann JIT nicht aktivieren. Verwende dafür StikDebug."
+            "value": "Reloader kann JIT nicht aktivieren. Verwende dafür StikDebug."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "AltLoad ne peut pas activer le JIT. Utilisez StikDebug pour cela."
+            "value": "Reloader ne peut pas activer le JIT. Utilisez StikDebug pour cela."
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "AltLoad non può attivare il JIT. Usa StikDebug per questo."
+            "value": "Reloader non può attivare il JIT. Usa StikDebug per questo."
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "AltLoad не может включить JIT. Используйте для этого StikDebug."
+            "value": "Reloader не может включить JIT. Используйте для этого StikDebug."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "AltLoad 无法启用 JIT。请使用 StikDebug。"
+            "value": "Reloader 无法启用 JIT。请使用 StikDebug。"
           }
         }
       }
     },
-    "AltLoad doesn't support \"%@\" yet.": {
+    "Reloader doesn't support \"%@\" yet.": {
       "extractionState": "manual",
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "AltLoad unterstützt „%@“ noch nicht."
+            "value": "Reloader unterstützt „%@“ noch nicht."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "AltLoad ne prend pas encore en charge « %@ »."
+            "value": "Reloader ne prend pas encore en charge « %@ »."
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "AltLoad non supporta ancora “%@”."
+            "value": "Reloader non supporta ancora “%@”."
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "AltLoad пока не поддерживает «%@»."
+            "value": "Reloader пока не поддерживает «%@»."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "AltLoad 尚不支持“%@”。"
+            "value": "Reloader 尚不支持“%@”。"
           }
         }
       }
     },
-    "AltLoad installs the newest build each source lists. If SideStore's source or repository is down, it falls back to a mirror, its GitHub releases and then a known-good build.": {
+    "Reloader installs the newest build each source lists. If SideStore's source or repository is down, it falls back to a mirror, its GitHub releases and then a known-good build.": {
       "extractionState": "manual",
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "AltLoad installiert den neuesten Build jeder Quelle. Ist die Quelle oder das Repository von SideStore nicht erreichbar, weicht es auf einen Mirror, die GitHub-Releases und dann einen bewährten Build aus."
+            "value": "Reloader installiert den neuesten Build jeder Quelle. Ist die Quelle oder das Repository von SideStore nicht erreichbar, weicht es auf einen Mirror, die GitHub-Releases und dann einen bewährten Build aus."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "AltLoad installe la version la plus récente de chaque source. Si la source ou le dépôt de SideStore est indisponible, il se rabat sur un miroir, ses versions GitHub, puis une version connue pour fonctionner."
+            "value": "Reloader installe la version la plus récente de chaque source. Si la source ou le dépôt de SideStore est indisponible, il se rabat sur un miroir, ses versions GitHub, puis une version connue pour fonctionner."
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "AltLoad installa la build più recente di ogni sorgente. Se la sorgente o il repository di SideStore non sono disponibili, passa a un mirror, alle release GitHub e poi a una build sicuramente funzionante."
+            "value": "Reloader installa la build più recente di ogni sorgente. Se la sorgente o il repository di SideStore non sono disponibili, passa a un mirror, alle release GitHub e poi a una build sicuramente funzionante."
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "AltLoad устанавливает самую новую сборку из каждого источника. Если источник или репозиторий SideStore недоступен, используется зеркало, затем релизы GitHub, затем проверенная сборка."
+            "value": "Reloader устанавливает самую новую сборку из каждого источника. Если источник или репозиторий SideStore недоступен, используется зеркало, затем релизы GitHub, затем проверенная сборка."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "AltLoad 会安装每个源列出的最新版本。如果 SideStore 的源或仓库无法访问，会依次改用镜像、GitHub 发布版本和已知可用的版本。"
+            "value": "Reloader 会安装每个源列出的最新版本。如果 SideStore 的源或仓库无法访问，会依次改用镜像、GitHub 发布版本和已知可用的版本。"
           }
         }
       }
     },
-    "AltLoad isn't affiliated with AltStore, SideStore, LiveContainer, Husk, Riley Testut or Apple. Apple, iPhone and iOS are trademarks of Apple Inc.": {
+    "Reloader isn't affiliated with AltStore, SideStore, LiveContainer, Husk, Riley Testut or Apple. Apple, iPhone and iOS are trademarks of Apple Inc.": {
       "extractionState": "manual",
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "AltLoad ist nicht mit AltStore, SideStore, LiveContainer, Husk, Riley Testut oder Apple verbunden. Apple, iPhone und iOS sind Marken von Apple Inc."
+            "value": "Reloader ist nicht mit AltStore, SideStore, LiveContainer, Husk, Riley Testut oder Apple verbunden. Apple, iPhone und iOS sind Marken von Apple Inc."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "AltLoad n'est pas affilié à AltStore, SideStore, LiveContainer, Husk, Riley Testut ou Apple. Apple, iPhone et iOS sont des marques d'Apple Inc."
+            "value": "Reloader n'est pas affilié à AltStore, SideStore, LiveContainer, Husk, Riley Testut ou Apple. Apple, iPhone et iOS sont des marques d'Apple Inc."
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "AltLoad non è affiliata ad AltStore, SideStore, LiveContainer, Husk, Riley Testut o Apple. Apple, iPhone e iOS sono marchi di Apple Inc."
+            "value": "Reloader non è affiliata ad AltStore, SideStore, LiveContainer, Husk, Riley Testut o Apple. Apple, iPhone e iOS sono marchi di Apple Inc."
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "AltLoad не связан с AltStore, SideStore, LiveContainer, Husk, Riley Testut или Apple. Apple, iPhone и iOS — товарные знаки Apple Inc."
+            "value": "Reloader не связан с AltStore, SideStore, LiveContainer, Husk, Riley Testut или Apple. Apple, iPhone и iOS — товарные знаки Apple Inc."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "AltLoad 与 AltStore、SideStore、LiveContainer、Husk、Riley Testut 或 Apple 无关联。Apple、iPhone 和 iOS 是 Apple Inc. 的商标。"
+            "value": "Reloader 与 AltStore、SideStore、LiveContainer、Husk、Riley Testut 或 Apple 无关联。Apple、iPhone 和 iOS 是 Apple Inc. 的商标。"
           }
         }
       }
     },
-    "AltLoad needs this device's pairing file to install apps.": {
+    "Reloader needs this device's pairing file to install apps.": {
       "extractionState": "manual",
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "AltLoad benötigt die Kopplungsdatei dieses Geräts, um Apps zu installieren."
+            "value": "Reloader benötigt die Kopplungsdatei dieses Geräts, um Apps zu installieren."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "AltLoad a besoin du fichier de jumelage de cet appareil pour installer des apps."
+            "value": "Reloader a besoin du fichier de jumelage de cet appareil pour installer des apps."
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "AltLoad ha bisogno del file di abbinamento di questo dispositivo per installare le app."
+            "value": "Reloader ha bisogno del file di abbinamento di questo dispositivo per installare le app."
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "AltLoad нужен файл сопряжения этого устройства, чтобы устанавливать приложения."
+            "value": "Reloader нужен файл сопряжения этого устройства, чтобы устанавливать приложения."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "AltLoad 需要此设备的配对文件才能安装 App。"
+            "value": "Reloader 需要此设备的配对文件才能安装 App。"
           }
         }
       }
     },
-    "AltLoad needs this iPhone's pairing file to talk to it, the way a computer would.": {
+    "Reloader needs this iPhone's pairing file to talk to it, the way a computer would.": {
       "extractionState": "manual",
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "AltLoad benötigt die Kopplungsdatei dieses iPhones, um wie ein Computer mit ihm zu kommunizieren."
+            "value": "Reloader benötigt die Kopplungsdatei dieses iPhones, um wie ein Computer mit ihm zu kommunizieren."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "AltLoad a besoin du fichier de jumelage de cet iPhone pour communiquer avec lui, comme le ferait un ordinateur."
+            "value": "Reloader a besoin du fichier de jumelage de cet iPhone pour communiquer avec lui, comme le ferait un ordinateur."
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "AltLoad ha bisogno del file di abbinamento di questo iPhone per comunicare con esso, come farebbe un computer."
+            "value": "Reloader ha bisogno del file di abbinamento di questo iPhone per comunicare con esso, come farebbe un computer."
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "AltLoad нужен файл сопряжения этого iPhone, чтобы связываться с ним, как это делал бы компьютер."
+            "value": "Reloader нужен файл сопряжения этого iPhone, чтобы связываться с ним, как это делал бы компьютер."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "AltLoad 需要此 iPhone 的配对文件，才能像电脑一样与它通信。"
+            "value": "Reloader 需要此 iPhone 的配对文件，才能像电脑一样与它通信。"
           }
         }
       }
     },
-    "AltLoad pairing code": {
+    "Reloader pairing code": {
       "extractionState": "manual",
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "AltLoad-Kopplungscode"
+            "value": "Reloader-Kopplungscode"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Code de jumelage AltLoad"
+            "value": "Code de jumelage Reloader"
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "Codice di abbinamento AltLoad"
+            "value": "Codice di abbinamento Reloader"
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Код сопряжения AltLoad"
+            "value": "Код сопряжения Reloader"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "AltLoad 配对码"
+            "value": "Reloader 配对码"
           }
         }
       }
     },
-    "AltLoad reads and revokes the development certificates on your Apple ID — the same ones it uses to sign apps. A free account allows a limited number at once.": {
+    "Reloader reads and revokes the development certificates on your Apple ID — the same ones it uses to sign apps. A free account allows a limited number at once.": {
       "extractionState": "manual",
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "AltLoad liest und widerruft die Entwicklungszertifikate deiner Apple-ID – dieselben, mit denen es Apps signiert. Ein kostenloser Account erlaubt nur eine begrenzte Anzahl gleichzeitig."
+            "value": "Reloader liest und widerruft die Entwicklungszertifikate deiner Apple-ID – dieselben, mit denen es Apps signiert. Ein kostenloser Account erlaubt nur eine begrenzte Anzahl gleichzeitig."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "AltLoad lit et révoque les certificats de développement de votre identifiant Apple, ceux qu'il utilise pour signer les apps. Un compte gratuit en autorise un nombre limité à la fois."
+            "value": "Reloader lit et révoque les certificats de développement de votre identifiant Apple, ceux qu'il utilise pour signer les apps. Un compte gratuit en autorise un nombre limité à la fois."
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "AltLoad legge e revoca i certificati di sviluppo del tuo ID Apple, gli stessi che usa per firmare le app. Un account gratuito ne consente un numero limitato alla volta."
+            "value": "Reloader legge e revoca i certificati di sviluppo del tuo ID Apple, gli stessi che usa per firmare le app. Un account gratuito ne consente un numero limitato alla volta."
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "AltLoad читает и отзывает сертификаты разработчика вашего Apple ID — те самые, которыми он подписывает приложения. В бесплатном аккаунте их число ограничено."
+            "value": "Reloader читает и отзывает сертификаты разработчика вашего Apple ID — те самые, которыми он подписывает приложения. В бесплатном аккаунте их число ограничено."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "AltLoad 可读取和吊销你 Apple ID 上的开发证书，也就是它用来签名 App 的证书。免费账户同时可用的数量有限。"
+            "value": "Reloader 可读取和吊销你 Apple ID 上的开发证书，也就是它用来签名 App 的证书。免费账户同时可用的数量有限。"
           }
         }
       }
     },
-    "AltLoad signs %@ with your Apple ID and installs it straight onto this iPhone. With a free Apple ID it lasts 7 days, and AltLoad reminds you the day before.": {
+    "Reloader signs %@ with your Apple ID and installs it straight onto this iPhone. With a free Apple ID it lasts 7 days, and Reloader reminds you the day before.": {
       "extractionState": "manual",
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "AltLoad signiert %@ mit deiner Apple-ID und installiert es direkt auf diesem iPhone. Mit einer kostenlosen Apple-ID hält es 7 Tage, und AltLoad erinnert dich am Tag davor."
+            "value": "Reloader signiert %@ mit deiner Apple-ID und installiert es direkt auf diesem iPhone. Mit einer kostenlosen Apple-ID hält es 7 Tage, und Reloader erinnert dich am Tag davor."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "AltLoad signe %@ avec votre identifiant Apple et l'installe directement sur cet iPhone. Avec un identifiant Apple gratuit, il dure 7 jours et AltLoad vous prévient la veille."
+            "value": "Reloader signe %@ avec votre identifiant Apple et l'installe directement sur cet iPhone. Avec un identifiant Apple gratuit, il dure 7 jours et Reloader vous prévient la veille."
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "AltLoad firma %@ con il tuo ID Apple e lo installa direttamente su questo iPhone. Con un ID Apple gratuito dura 7 giorni e AltLoad te lo ricorda il giorno prima."
+            "value": "Reloader firma %@ con il tuo ID Apple e lo installa direttamente su questo iPhone. Con un ID Apple gratuito dura 7 giorni e Reloader te lo ricorda il giorno prima."
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "AltLoad подписывает %@ вашим Apple ID и устанавливает прямо на этот iPhone. С бесплатным Apple ID подпись действует 7 дней, и AltLoad напомнит об этом за день."
+            "value": "Reloader подписывает %@ вашим Apple ID и устанавливает прямо на этот iPhone. С бесплатным Apple ID подпись действует 7 дней, и Reloader напомнит об этом за день."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "AltLoad 会用你的 Apple ID 为 %@ 签名，并直接安装到此 iPhone。使用免费 Apple ID 时有效期为 7 天，AltLoad 会提前一天提醒你。"
+            "value": "Reloader 会用你的 Apple ID 为 %@ 签名，并直接安装到此 iPhone。使用免费 Apple ID 时有效期为 7 天，Reloader 会提前一天提醒你。"
           }
         }
       }
     },
-    "AltLoad tried the source, its mirror and GitHub. Try again later, or pick a %@ IPA you already have.": {
+    "Reloader tried the source, its mirror and GitHub. Try again later, or pick a %@ IPA you already have.": {
       "extractionState": "manual",
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "AltLoad hat die Quelle, ihren Mirror und GitHub versucht. Versuche es später erneut oder wähle eine vorhandene %@-IPA aus."
+            "value": "Reloader hat die Quelle, ihren Mirror und GitHub versucht. Versuche es später erneut oder wähle eine vorhandene %@-IPA aus."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "AltLoad a essayé la source, son miroir et GitHub. Réessayez plus tard, ou choisissez un IPA de %@ que vous avez déjà."
+            "value": "Reloader a essayé la source, son miroir et GitHub. Réessayez plus tard, ou choisissez un IPA de %@ que vous avez déjà."
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "AltLoad ha provato la sorgente, il suo mirror e GitHub. Riprova più tardi o scegli un IPA di %@ che hai già."
+            "value": "Reloader ha provato la sorgente, il suo mirror e GitHub. Riprova più tardi o scegli un IPA di %@ che hai già."
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "AltLoad проверил источник, его зеркало и GitHub. Повторите позже или выберите имеющийся IPA для %@."
+            "value": "Reloader проверил источник, его зеркало и GitHub. Повторите позже или выберите имеющийся IPA для %@."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "AltLoad 已尝试源、镜像和 GitHub。请稍后再试，或选择你已有的 %@ IPA。"
+            "value": "Reloader 已尝试源、镜像和 GitHub。请稍后再试，或选择你已有的 %@ IPA。"
           }
         }
       }
     },
-    "AltLoad will use the copy it downloaded last time. You can also pick an IPA you have.": {
+    "Reloader will use the copy it downloaded last time. You can also pick an IPA you have.": {
       "extractionState": "manual",
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "AltLoad verwendet die zuletzt heruntergeladene Kopie. Du kannst auch eine vorhandene IPA auswählen."
+            "value": "Reloader verwendet die zuletzt heruntergeladene Kopie. Du kannst auch eine vorhandene IPA auswählen."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "AltLoad utilisera la copie téléchargée la dernière fois. Vous pouvez aussi choisir un IPA que vous avez."
+            "value": "Reloader utilisera la copie téléchargée la dernière fois. Vous pouvez aussi choisir un IPA que vous avez."
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "AltLoad userà la copia scaricata l'ultima volta. Puoi anche scegliere un IPA che hai già."
+            "value": "Reloader userà la copia scaricata l'ultima volta. Puoi anche scegliere un IPA che hai già."
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "AltLoad использует копию, скачанную в прошлый раз. Можно также выбрать имеющийся IPA."
+            "value": "Reloader использует копию, скачанную в прошлый раз. Можно также выбрать имеющийся IPA."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "AltLoad 将使用上次下载的副本。你也可以选择已有的 IPA。"
+            "value": "Reloader 将使用上次下载的副本。你也可以选择已有的 IPA。"
           }
         }
       }
     },
-    "AltLoad will use this file for installs. It's also in **Files › On My iPhone › AltLoad › Pairings**.": {
+    "Reloader will use this file for installs. It's also in **Files › On My iPhone › Reloader › Pairings**.": {
       "extractionState": "manual",
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "AltLoad verwendet diese Datei für Installationen. Sie liegt auch unter **Dateien › Auf meinem iPhone › AltLoad › Pairings**."
+            "value": "Reloader verwendet diese Datei für Installationen. Sie liegt auch unter **Dateien › Auf meinem iPhone › Reloader › Pairings**."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "AltLoad utilisera ce fichier pour les installations. Il se trouve aussi dans **Fichiers › Sur mon iPhone › AltLoad › Pairings**."
+            "value": "Reloader utilisera ce fichier pour les installations. Il se trouve aussi dans **Fichiers › Sur mon iPhone › Reloader › Pairings**."
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "AltLoad userà questo file per le installazioni. Si trova anche in **File › Su iPhone › AltLoad › Pairings**."
+            "value": "Reloader userà questo file per le installazioni. Si trova anche in **File › Su iPhone › Reloader › Pairings**."
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "AltLoad будет использовать этот файл для установок. Он также находится в **Файлы › На iPhone › AltLoad › Pairings**."
+            "value": "Reloader будет использовать этот файл для установок. Он также находится в **Файлы › На iPhone › Reloader › Pairings**."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "AltLoad 将使用此文件进行安装。它也位于 **文件 › 我的 iPhone › AltLoad › Pairings**。"
+            "value": "Reloader 将使用此文件进行安装。它也位于 **文件 › 我的 iPhone › Reloader › Pairings**。"
           }
         }
       }
@@ -2241,107 +2241,107 @@
         }
       }
     },
-    "AltStore sent something AltLoad couldn't read.": {
+    "AltStore sent something Reloader couldn't read.": {
       "extractionState": "manual",
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "AltStore hat etwas gesendet, das AltLoad nicht lesen konnte."
+            "value": "AltStore hat etwas gesendet, das Reloader nicht lesen konnte."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "AltStore a envoyé des données illisibles pour AltLoad."
+            "value": "AltStore a envoyé des données illisibles pour Reloader."
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "AltStore ha inviato dati che AltLoad non riesce a leggere."
+            "value": "AltStore ha inviato dati che Reloader non riesce a leggere."
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "AltStore отправил данные, которые AltLoad не может прочитать."
+            "value": "AltStore отправил данные, которые Reloader не может прочитать."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "AltStore 发送了 AltLoad 无法读取的内容。"
+            "value": "AltStore 发送了 Reloader 无法读取的内容。"
           }
         }
       }
     },
-    "AltStore signs apps with its own Apple ID sign-in. AltLoad's AltServer puts them on this iPhone, manages their profiles and gives AltStore anisette data from your anisette server. JIT isn't supported.": {
+    "AltStore signs apps with its own Apple ID sign-in. Reloader's AltServer puts them on this iPhone, manages their profiles and gives AltStore anisette data from your anisette server. JIT isn't supported.": {
       "extractionState": "manual",
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "AltStore signiert Apps mit seiner eigenen Apple-ID-Anmeldung. Der AltServer von AltLoad legt sie auf dieses iPhone, verwaltet ihre Profile und gibt AltStore Anisette-Daten von deinem Anisette-Server. JIT wird nicht unterstützt."
+            "value": "AltStore signiert Apps mit seiner eigenen Apple-ID-Anmeldung. Der AltServer von Reloader legt sie auf dieses iPhone, verwaltet ihre Profile und gibt AltStore Anisette-Daten von deinem Anisette-Server. JIT wird nicht unterstützt."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "AltStore signe les apps avec sa propre connexion à l'identifiant Apple. L'AltServer d'AltLoad les place sur cet iPhone, gère leurs profils et fournit à AltStore les données anisette de votre serveur. Le JIT n'est pas pris en charge."
+            "value": "AltStore signe les apps avec sa propre connexion à l'identifiant Apple. L'AltServer d'Reloader les place sur cet iPhone, gère leurs profils et fournit à AltStore les données anisette de votre serveur. Le JIT n'est pas pris en charge."
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "AltStore firma le app con il proprio accesso all'ID Apple. L'AltServer di AltLoad le mette su questo iPhone, ne gestisce i profili e fornisce ad AltStore i dati anisette del tuo server. Il JIT non è supportato."
+            "value": "AltStore firma le app con il proprio accesso all'ID Apple. L'AltServer di Reloader le mette su questo iPhone, ne gestisce i profili e fornisce ad AltStore i dati anisette del tuo server. Il JIT non è supportato."
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "AltStore подписывает приложения через собственный вход в Apple ID. AltServer из AltLoad размещает их на этом iPhone, управляет профилями и передаёт AltStore данные anisette с вашего сервера. JIT не поддерживается."
+            "value": "AltStore подписывает приложения через собственный вход в Apple ID. AltServer из Reloader размещает их на этом iPhone, управляет профилями и передаёт AltStore данные anisette с вашего сервера. JIT не поддерживается."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "AltStore 使用自己的 Apple ID 登录来签名 App。AltLoad 的 AltServer 将它们放到此 iPhone 上，管理其描述文件，并向 AltStore 提供来自 anisette 服务器的数据。不支持 JIT。"
+            "value": "AltStore 使用自己的 Apple ID 登录来签名 App。Reloader 的 AltServer 将它们放到此 iPhone 上，管理其描述文件，并向 AltStore 提供来自 anisette 服务器的数据。不支持 JIT。"
           }
         }
       }
     },
-    "AltStore uses AltLoad as its AltServer. Keep AltLoad open while AltStore installs or refreshes, or turn on background mode in Tools › AltServer.": {
+    "AltStore uses Reloader as its AltServer. Keep Reloader open while AltStore installs or refreshes, or turn on background mode in Tools › AltServer.": {
       "extractionState": "manual",
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "AltStore verwendet AltLoad als AltServer. Lass AltLoad geöffnet, während AltStore installiert oder aktualisiert, oder aktiviere den Hintergrundmodus unter Werkzeuge › AltServer."
+            "value": "AltStore verwendet Reloader als AltServer. Lass Reloader geöffnet, während AltStore installiert oder aktualisiert, oder aktiviere den Hintergrundmodus unter Werkzeuge › AltServer."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "AltStore utilise AltLoad comme AltServer. Gardez AltLoad ouvert pendant qu'AltStore installe ou actualise, ou activez le mode arrière-plan dans Outils › AltServer."
+            "value": "AltStore utilise Reloader comme AltServer. Gardez Reloader ouvert pendant qu'AltStore installe ou actualise, ou activez le mode arrière-plan dans Outils › AltServer."
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "AltStore usa AltLoad come AltServer. Tieni aperta AltLoad mentre AltStore installa o aggiorna, oppure attiva la modalità in background in Strumenti › AltServer."
+            "value": "AltStore usa Reloader come AltServer. Tieni aperta Reloader mentre AltStore installa o aggiorna, oppure attiva la modalità in background in Strumenti › AltServer."
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "AltStore использует AltLoad как AltServer. Не закрывайте AltLoad, пока AltStore устанавливает или обновляет приложения, либо включите фоновый режим в «Инструменты › AltServer»."
+            "value": "AltStore использует Reloader как AltServer. Не закрывайте Reloader, пока AltStore устанавливает или обновляет приложения, либо включите фоновый режим в «Инструменты › AltServer»."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "AltStore 将 AltLoad 用作 AltServer。在 AltStore 安装或刷新时请保持 AltLoad 打开，或在“工具 › AltServer”中开启后台模式。"
+            "value": "AltStore 将 Reloader 用作 AltServer。在 AltStore 安装或刷新时请保持 Reloader 打开，或在“工具 › AltServer”中开启后台模式。"
           }
         }
       }
@@ -4026,37 +4026,37 @@
         }
       }
     },
-    "Create a pairing file on this device. AltLoad uses it to install apps.": {
+    "Create a pairing file on this device. Reloader uses it to install apps.": {
       "extractionState": "manual",
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Erstelle auf diesem Gerät eine Kopplungsdatei. AltLoad installiert damit Apps."
+            "value": "Erstelle auf diesem Gerät eine Kopplungsdatei. Reloader installiert damit Apps."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Créez un fichier de jumelage sur cet appareil. AltLoad s'en sert pour installer des apps."
+            "value": "Créez un fichier de jumelage sur cet appareil. Reloader s'en sert pour installer des apps."
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "Crea un file di abbinamento su questo dispositivo. AltLoad lo usa per installare le app."
+            "value": "Crea un file di abbinamento su questo dispositivo. Reloader lo usa per installare le app."
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Создайте файл сопряжения на этом устройстве. С его помощью AltLoad устанавливает приложения."
+            "value": "Создайте файл сопряжения на этом устройстве. С его помощью Reloader устанавливает приложения."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "在此设备上创建配对文件。AltLoad 用它来安装 App。"
+            "value": "在此设备上创建配对文件。Reloader 用它来安装 App。"
           }
         }
       }
@@ -5006,37 +5006,37 @@
         }
       }
     },
-    "Every app and extension AltLoad signs uses an App ID. A free Apple ID can have 10 at a time, and each one frees up 7 days after it was made.": {
+    "Every app and extension Reloader signs uses an App ID. A free Apple ID can have 10 at a time, and each one frees up 7 days after it was made.": {
       "extractionState": "manual",
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Jede von AltLoad signierte App und Erweiterung nutzt eine App-ID. Eine kostenlose Apple-ID kann 10 gleichzeitig haben, und jede wird 7 Tage nach ihrer Erstellung frei."
+            "value": "Jede von Reloader signierte App und Erweiterung nutzt eine App-ID. Eine kostenlose Apple-ID kann 10 gleichzeitig haben, und jede wird 7 Tage nach ihrer Erstellung frei."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Chaque app et extension signée par AltLoad utilise un identifiant d'app. Un identifiant Apple gratuit peut en avoir 10 à la fois, et chacun se libère 7 jours après sa création."
+            "value": "Chaque app et extension signée par Reloader utilise un identifiant d'app. Un identifiant Apple gratuit peut en avoir 10 à la fois, et chacun se libère 7 jours après sa création."
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ogni app ed estensione firmata da AltLoad usa un ID app. Un ID Apple gratuito può averne 10 alla volta, e ognuno si libera 7 giorni dopo la creazione."
+            "value": "Ogni app ed estensione firmata da Reloader usa un ID app. Un ID Apple gratuito può averne 10 alla volta, e ognuno si libera 7 giorni dopo la creazione."
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Каждое приложение и расширение, подписанное AltLoad, использует App ID. У бесплатного Apple ID их может быть 10 одновременно, и каждый освобождается через 7 дней после создания."
+            "value": "Каждое приложение и расширение, подписанное Reloader, использует App ID. У бесплатного Apple ID их может быть 10 одновременно, и каждый освобождается через 7 дней после создания."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "AltLoad 签名的每个 App 和扩展都使用一个 App ID。免费 Apple ID 同时最多 10 个，每个在创建 7 天后释放。"
+            "value": "Reloader 签名的每个 App 和扩展都使用一个 App ID。免费 Apple ID 同时最多 10 个，每个在创建 7 天后释放。"
           }
         }
       }
@@ -5321,37 +5321,37 @@
         }
       }
     },
-    "Extra capabilities for apps AltLoad signs": {
+    "Extra capabilities for apps Reloader signs": {
       "extractionState": "manual",
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Zusätzliche Funktionen für von AltLoad signierte Apps"
+            "value": "Zusätzliche Funktionen für von Reloader signierte Apps"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Capacités supplémentaires pour les apps signées par AltLoad"
+            "value": "Capacités supplémentaires pour les apps signées par Reloader"
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "Funzionalità aggiuntive per le app firmate da AltLoad"
+            "value": "Funzionalità aggiuntive per le app firmate da Reloader"
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Дополнительные возможности для приложений, подписанных AltLoad"
+            "value": "Дополнительные возможности для приложений, подписанных Reloader"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "为 AltLoad 签名的 App 提供额外功能"
+            "value": "为 Reloader 签名的 App 提供额外功能"
           }
         }
       }
@@ -6021,37 +6021,37 @@
         }
       }
     },
-    "If **Pair with AltLoad** doesn't show up, close the app and try again.": {
+    "If **Pair with Reloader** doesn't show up, close the app and try again.": {
       "extractionState": "manual",
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Wenn **Pair with AltLoad** nicht erscheint, schließe die App und versuche es erneut."
+            "value": "Wenn **Pair with Reloader** nicht erscheint, schließe die App und versuche es erneut."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Si **Pair with AltLoad** n'apparaît pas, fermez l'app et réessayez."
+            "value": "Si **Pair with Reloader** n'apparaît pas, fermez l'app et réessayez."
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "Se **Pair with AltLoad** non compare, chiudi l'app e riprova."
+            "value": "Se **Pair with Reloader** non compare, chiudi l'app e riprova."
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Если **Pair with AltLoad** не появляется, закройте приложение и повторите."
+            "value": "Если **Pair with Reloader** не появляется, закройте приложение и повторите."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "如果未显示 **Pair with AltLoad**，请关闭 App 后重试。"
+            "value": "如果未显示 **Pair with Reloader**，请关闭 App 后重试。"
           }
         }
       }
@@ -6686,37 +6686,37 @@
         }
       }
     },
-    "Installed but off. AltLoad will ask you to turn it on": {
+    "Installed but off. Reloader will ask you to turn it on": {
       "extractionState": "manual",
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Installiert, aber aus. AltLoad bittet dich, es einzuschalten"
+            "value": "Installiert, aber aus. Reloader bittet dich, es einzuschalten"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Installé mais désactivé. AltLoad vous demandera de l'activer"
+            "value": "Installé mais désactivé. Reloader vous demandera de l'activer"
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "Installata ma disattivata. AltLoad ti chiederà di attivarla"
+            "value": "Installata ma disattivata. Reloader ti chiederà di attivarla"
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Установлено, но выключено. AltLoad попросит включить"
+            "value": "Установлено, но выключено. Reloader попросит включить"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "已安装但未开启。AltLoad 会提示你开启"
+            "value": "已安装但未开启。Reloader 会提示你开启"
           }
         }
       }
@@ -6966,37 +6966,37 @@
         }
       }
     },
-    "Keep AltLoad open until this finishes.": {
+    "Keep Reloader open until this finishes.": {
       "extractionState": "manual",
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Lass AltLoad geöffnet, bis der Vorgang abgeschlossen ist."
+            "value": "Lass Reloader geöffnet, bis der Vorgang abgeschlossen ist."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Gardez AltLoad ouvert jusqu'à la fin."
+            "value": "Gardez Reloader ouvert jusqu'à la fin."
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "Tieni aperta AltLoad fino al termine."
+            "value": "Tieni aperta Reloader fino al termine."
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Не закрывайте AltLoad до завершения."
+            "value": "Не закрывайте Reloader до завершения."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "请保持 AltLoad 打开直到完成。"
+            "value": "请保持 Reloader 打开直到完成。"
           }
         }
       }
@@ -7456,107 +7456,107 @@
         }
       }
     },
-    "Local Network permission is required. Enable it in Settings › AltLoad › Local Network, then try again.": {
+    "Local Network permission is required. Enable it in Settings › Reloader › Local Network, then try again.": {
       "extractionState": "manual",
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Die Berechtigung „Lokales Netzwerk“ ist erforderlich. Aktiviere sie unter Einstellungen › AltLoad › Lokales Netzwerk und versuche es erneut."
+            "value": "Die Berechtigung „Lokales Netzwerk“ ist erforderlich. Aktiviere sie unter Einstellungen › Reloader › Lokales Netzwerk und versuche es erneut."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "L'autorisation Réseau local est requise. Activez-la dans Réglages › AltLoad › Réseau local, puis réessayez."
+            "value": "L'autorisation Réseau local est requise. Activez-la dans Réglages › Reloader › Réseau local, puis réessayez."
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "È richiesta l'autorizzazione Rete locale. Attivala in Impostazioni › AltLoad › Rete locale, poi riprova."
+            "value": "È richiesta l'autorizzazione Rete locale. Attivala in Impostazioni › Reloader › Rete locale, poi riprova."
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Требуется разрешение «Локальная сеть». Включите его в «Настройки › AltLoad › Локальная сеть» и повторите."
+            "value": "Требуется разрешение «Локальная сеть». Включите его в «Настройки › Reloader › Локальная сеть» и повторите."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "需要“本地网络”权限。请在“设置 › AltLoad › 本地网络”中开启，然后重试。"
+            "value": "需要“本地网络”权限。请在“设置 › Reloader › 本地网络”中开启，然后重试。"
           }
         }
       }
     },
-    "LocalDevVPN is off. Turn it on so AltLoad can reach this iPhone.": {
+    "LocalDevVPN is off. Turn it on so Reloader can reach this iPhone.": {
       "extractionState": "manual",
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "LocalDevVPN ist aus. Schalte es ein, damit AltLoad dieses iPhone erreichen kann."
+            "value": "LocalDevVPN ist aus. Schalte es ein, damit Reloader dieses iPhone erreichen kann."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "LocalDevVPN est désactivé. Activez-le pour qu'AltLoad puisse joindre cet iPhone."
+            "value": "LocalDevVPN est désactivé. Activez-le pour qu'Reloader puisse joindre cet iPhone."
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "LocalDevVPN è disattivata. Attivala perché AltLoad possa raggiungere questo iPhone."
+            "value": "LocalDevVPN è disattivata. Attivala perché Reloader possa raggiungere questo iPhone."
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "LocalDevVPN выключен. Включите его, чтобы AltLoad мог связаться с этим iPhone."
+            "value": "LocalDevVPN выключен. Включите его, чтобы Reloader мог связаться с этим iPhone."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "LocalDevVPN 已关闭。请开启，以便 AltLoad 访问此 iPhone。"
+            "value": "LocalDevVPN 已关闭。请开启，以便 Reloader 访问此 iPhone。"
           }
         }
       }
     },
-    "LocalDevVPN loops traffic for %@ back into this iPhone, so AltLoad can reach it like a computer would. It only carries that one address, and your normal internet traffic isn't affected.": {
+    "LocalDevVPN loops traffic for %@ back into this iPhone, so Reloader can reach it like a computer would. It only carries that one address, and your normal internet traffic isn't affected.": {
       "extractionState": "manual",
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "LocalDevVPN leitet den Verkehr für %@ zurück in dieses iPhone, damit AltLoad es wie ein Computer erreicht. Es überträgt nur diese eine Adresse, dein normaler Internetverkehr ist nicht betroffen."
+            "value": "LocalDevVPN leitet den Verkehr für %@ zurück in dieses iPhone, damit Reloader es wie ein Computer erreicht. Es überträgt nur diese eine Adresse, dein normaler Internetverkehr ist nicht betroffen."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "LocalDevVPN renvoie le trafic de %@ vers cet iPhone, pour qu'AltLoad le joigne comme le ferait un ordinateur. Il ne transporte que cette adresse, et votre trafic Internet habituel n'est pas affecté."
+            "value": "LocalDevVPN renvoie le trafic de %@ vers cet iPhone, pour qu'Reloader le joigne comme le ferait un ordinateur. Il ne transporte que cette adresse, et votre trafic Internet habituel n'est pas affecté."
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "LocalDevVPN rimanda il traffico per %@ a questo iPhone, così AltLoad può raggiungerlo come farebbe un computer. Trasporta solo quell'indirizzo e il normale traffico Internet non viene toccato."
+            "value": "LocalDevVPN rimanda il traffico per %@ a questo iPhone, così Reloader può raggiungerlo come farebbe un computer. Trasporta solo quell'indirizzo e il normale traffico Internet non viene toccato."
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "LocalDevVPN возвращает трафик для %@ обратно в этот iPhone, чтобы AltLoad мог обращаться к нему как компьютер. Он передаёт только этот адрес, обычный интернет-трафик не затрагивается."
+            "value": "LocalDevVPN возвращает трафик для %@ обратно в этот iPhone, чтобы Reloader мог обращаться к нему как компьютер. Он передаёт только этот адрес, обычный интернет-трафик не затрагивается."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "LocalDevVPN 会把发往 %@ 的流量回环到此 iPhone，让 AltLoad 能像电脑一样访问它。它只传输这一个地址，不影响你的正常上网流量。"
+            "value": "LocalDevVPN 会把发往 %@ 的流量回环到此 iPhone，让 Reloader 能像电脑一样访问它。它只传输这一个地址，不影响你的正常上网流量。"
           }
         }
       }
@@ -7596,37 +7596,37 @@
         }
       }
     },
-    "Location is off, so background keep-alive can't run. If **Pair with AltLoad** doesn't appear, turn on **Silent audio** in Settings, or allow Location for AltLoad.": {
+    "Location is off, so background keep-alive can't run. If **Pair with Reloader** doesn't appear, turn on **Silent audio** in Settings, or allow Location for Reloader.": {
       "extractionState": "manual",
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Der Standort ist aus, daher kann die App nicht im Hintergrund aktiv bleiben. Wenn **Pair with AltLoad** nicht erscheint, aktiviere **Stummes Audio** in den Einstellungen oder erlaube AltLoad den Standort."
+            "value": "Der Standort ist aus, daher kann die App nicht im Hintergrund aktiv bleiben. Wenn **Pair with Reloader** nicht erscheint, aktiviere **Stummes Audio** in den Einstellungen oder erlaube Reloader den Standort."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "La position est désactivée, le maintien en arrière-plan ne peut donc pas fonctionner. Si **Pair with AltLoad** n'apparaît pas, activez **Audio silencieux** dans les réglages, ou autorisez la position pour AltLoad."
+            "value": "La position est désactivée, le maintien en arrière-plan ne peut donc pas fonctionner. Si **Pair with Reloader** n'apparaît pas, activez **Audio silencieux** dans les réglages, ou autorisez la position pour Reloader."
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "La posizione è disattivata, quindi la modalità in background non può funzionare. Se **Pair with AltLoad** non compare, attiva **Audio silenzioso** nelle impostazioni o consenti la posizione ad AltLoad."
+            "value": "La posizione è disattivata, quindi la modalità in background non può funzionare. Se **Pair with Reloader** non compare, attiva **Audio silenzioso** nelle impostazioni o consenti la posizione ad Reloader."
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Геопозиция выключена, поэтому работа в фоне невозможна. Если **Pair with AltLoad** не появляется, включите **Беззвучное аудио** в настройках или разрешите AltLoad доступ к геопозиции."
+            "value": "Геопозиция выключена, поэтому работа в фоне невозможна. Если **Pair with Reloader** не появляется, включите **Беззвучное аудио** в настройках или разрешите Reloader доступ к геопозиции."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "位置已关闭，因此无法后台保活。如果未显示 **Pair with AltLoad**，请在设置中开启 **静音音频**，或允许 AltLoad 使用位置。"
+            "value": "位置已关闭，因此无法后台保活。如果未显示 **Pair with Reloader**，请在设置中开启 **静音音频**，或允许 Reloader 使用位置。"
           }
         }
       }
@@ -7666,37 +7666,37 @@
         }
       }
     },
-    "Long-press an app to stop AltLoad tracking it. Delete it from the Home Screen to uninstall.": {
+    "Long-press an app to stop Reloader tracking it. Delete it from the Home Screen to uninstall.": {
       "extractionState": "manual",
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Halte eine App gedrückt, damit AltLoad sie nicht mehr verfolgt. Lösche sie auf dem Home-Bildschirm, um sie zu deinstallieren."
+            "value": "Halte eine App gedrückt, damit Reloader sie nicht mehr verfolgt. Lösche sie auf dem Home-Bildschirm, um sie zu deinstallieren."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Appuyez longuement sur une app pour qu'AltLoad cesse de la suivre. Supprimez-la de l'écran d'accueil pour la désinstaller."
+            "value": "Appuyez longuement sur une app pour qu'Reloader cesse de la suivre. Supprimez-la de l'écran d'accueil pour la désinstaller."
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "Tieni premuta un'app perché AltLoad smetta di seguirla. Eliminala dalla schermata Home per disinstallarla."
+            "value": "Tieni premuta un'app perché Reloader smetta di seguirla. Eliminala dalla schermata Home per disinstallarla."
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Нажмите и удерживайте приложение, чтобы AltLoad перестал его отслеживать. Для удаления удалите его с экрана «Домой»."
+            "value": "Нажмите и удерживайте приложение, чтобы Reloader перестал его отслеживать. Для удаления удалите его с экрана «Домой»."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "长按 App 可让 AltLoad 停止跟踪。要卸载，请从主屏幕删除。"
+            "value": "长按 App 可让 Reloader 停止跟踪。要卸载，请从主屏幕删除。"
           }
         }
       }
@@ -8296,37 +8296,37 @@
         }
       }
     },
-    "No sideloaded apps on this iPhone. Install SideStore, StikDebug or another app with AltLoad first.": {
+    "No sideloaded apps on this iPhone. Install SideStore, StikDebug or another app with Reloader first.": {
       "extractionState": "manual",
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Keine sideloaded Apps auf diesem iPhone. Installiere zuerst SideStore, StikDebug oder eine andere App mit AltLoad."
+            "value": "Keine sideloaded Apps auf diesem iPhone. Installiere zuerst SideStore, StikDebug oder eine andere App mit Reloader."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Aucune app sideloadée sur cet iPhone. Installez d'abord SideStore, StikDebug ou une autre app avec AltLoad."
+            "value": "Aucune app sideloadée sur cet iPhone. Installez d'abord SideStore, StikDebug ou une autre app avec Reloader."
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "Nessuna app in sideload su questo iPhone. Installa prima SideStore, StikDebug o un'altra app con AltLoad."
+            "value": "Nessuna app in sideload su questo iPhone. Installa prima SideStore, StikDebug o un'altra app con Reloader."
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "На этом iPhone нет загруженных приложений. Сначала установите SideStore, StikDebug или другое приложение через AltLoad."
+            "value": "На этом iPhone нет загруженных приложений. Сначала установите SideStore, StikDebug или другое приложение через Reloader."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "此 iPhone 上没有侧载的 App。请先用 AltLoad 安装 SideStore、StikDebug 或其他 App。"
+            "value": "此 iPhone 上没有侧载的 App。请先用 Reloader 安装 SideStore、StikDebug 或其他 App。"
           }
         }
       }
@@ -8786,107 +8786,107 @@
         }
       }
     },
-    "On this iPhone · %@, not signed by AltLoad": {
+    "On this iPhone · %@, not signed by Reloader": {
       "extractionState": "manual",
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Auf diesem iPhone · %@, nicht von AltLoad signiert"
+            "value": "Auf diesem iPhone · %@, nicht von Reloader signiert"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Sur cet iPhone · %@, non signé par AltLoad"
+            "value": "Sur cet iPhone · %@, non signé par Reloader"
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "Su questo iPhone · %@, non firmata da AltLoad"
+            "value": "Su questo iPhone · %@, non firmata da Reloader"
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "На этом iPhone · %@, подписано не AltLoad"
+            "value": "На этом iPhone · %@, подписано не Reloader"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "在此 iPhone 上 · %@，非 AltLoad 签名"
+            "value": "在此 iPhone 上 · %@，非 Reloader 签名"
           }
         }
       }
     },
-    "On this iPhone, not signed by AltLoad": {
+    "On this iPhone, not signed by Reloader": {
       "extractionState": "manual",
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Auf diesem iPhone, nicht von AltLoad signiert"
+            "value": "Auf diesem iPhone, nicht von Reloader signiert"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Sur cet iPhone, non signé par AltLoad"
+            "value": "Sur cet iPhone, non signé par Reloader"
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "Su questo iPhone, non firmata da AltLoad"
+            "value": "Su questo iPhone, non firmata da Reloader"
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "На этом iPhone, подписано не AltLoad"
+            "value": "На этом iPhone, подписано не Reloader"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "在此 iPhone 上，非 AltLoad 签名"
+            "value": "在此 iPhone 上，非 Reloader 签名"
           }
         }
       }
     },
-    "On this iPhone. Refresh once so AltLoad can keep it signed": {
+    "On this iPhone. Refresh once so Reloader can keep it signed": {
       "extractionState": "manual",
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Auf diesem iPhone. Einmal aktualisieren, damit AltLoad es signiert halten kann"
+            "value": "Auf diesem iPhone. Einmal aktualisieren, damit Reloader es signiert halten kann"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Sur cet iPhone. Actualisez une fois pour qu'AltLoad puisse le garder signé"
+            "value": "Sur cet iPhone. Actualisez une fois pour qu'Reloader puisse le garder signé"
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "Su questo iPhone. Aggiorna una volta perché AltLoad possa mantenerla firmata"
+            "value": "Su questo iPhone. Aggiorna una volta perché Reloader possa mantenerla firmata"
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "На этом iPhone. Обновите один раз, чтобы AltLoad мог поддерживать подпись"
+            "value": "На этом iPhone. Обновите один раз, чтобы Reloader мог поддерживать подпись"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "在此 iPhone 上。刷新一次后，AltLoad 才能保持其签名有效"
+            "value": "在此 iPhone 上。刷新一次后，Reloader 才能保持其签名有效"
           }
         }
       }
@@ -8996,37 +8996,37 @@
         }
       }
     },
-    "Open AltLoad and tap Refresh to keep it working.": {
+    "Open Reloader and tap Refresh to keep it working.": {
       "extractionState": "manual",
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Öffne AltLoad und tippe auf „Aktualisieren“, damit es weiter funktioniert."
+            "value": "Öffne Reloader und tippe auf „Aktualisieren“, damit es weiter funktioniert."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ouvrez AltLoad et touchez Actualiser pour qu'elle continue de fonctionner."
+            "value": "Ouvrez Reloader et touchez Actualiser pour qu'elle continue de fonctionner."
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "Apri AltLoad e tocca Aggiorna per mantenerla funzionante."
+            "value": "Apri Reloader e tocca Aggiorna per mantenerla funzionante."
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Откройте AltLoad и нажмите «Обновить», чтобы приложение продолжало работать."
+            "value": "Откройте Reloader и нажмите «Обновить», чтобы приложение продолжало работать."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "打开 AltLoad 并轻点“刷新”以保持其可用。"
+            "value": "打开 Reloader 并轻点“刷新”以保持其可用。"
           }
         }
       }
@@ -11166,37 +11166,37 @@
         }
       }
     },
-    "Return to AltLoad to export the pairing file.": {
+    "Return to Reloader to export the pairing file.": {
       "extractionState": "manual",
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Kehre zu AltLoad zurück, um die Kopplungsdatei zu exportieren."
+            "value": "Kehre zu Reloader zurück, um die Kopplungsdatei zu exportieren."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Revenez à AltLoad pour exporter le fichier de jumelage."
+            "value": "Revenez à Reloader pour exporter le fichier de jumelage."
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "Torna ad AltLoad per esportare il file di abbinamento."
+            "value": "Torna ad Reloader per esportare il file di abbinamento."
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Вернитесь в AltLoad, чтобы экспортировать файл сопряжения."
+            "value": "Вернитесь в Reloader, чтобы экспортировать файл сопряжения."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "返回 AltLoad 以导出配对文件。"
+            "value": "返回 Reloader 以导出配对文件。"
           }
         }
       }
@@ -11551,37 +11551,37 @@
         }
       }
     },
-    "Scroll down and tap **Pair with AltLoad**": {
+    "Scroll down and tap **Pair with Reloader**": {
       "extractionState": "manual",
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Scrolle nach unten und tippe auf **Pair with AltLoad**"
+            "value": "Scrolle nach unten und tippe auf **Pair with Reloader**"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Faites défiler et touchez **Pair with AltLoad**"
+            "value": "Faites défiler et touchez **Pair with Reloader**"
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "Scorri in basso e tocca **Pair with AltLoad**"
+            "value": "Scorri in basso e tocca **Pair with Reloader**"
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Прокрутите вниз и нажмите **Pair with AltLoad**"
+            "value": "Прокрутите вниз и нажмите **Pair with Reloader**"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "向下滚动并轻点 **Pair with AltLoad**"
+            "value": "向下滚动并轻点 **Pair with Reloader**"
           }
         }
       }
@@ -12741,37 +12741,37 @@
         }
       }
     },
-    "Signed until %@. AltLoad reminds you the day before.": {
+    "Signed until %@. Reloader reminds you the day before.": {
       "extractionState": "manual",
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Signiert bis %@. AltLoad erinnert dich am Tag davor."
+            "value": "Signiert bis %@. Reloader erinnert dich am Tag davor."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Signé jusqu'au %@. AltLoad vous prévient la veille."
+            "value": "Signé jusqu'au %@. Reloader vous prévient la veille."
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "Firmata fino a %@. AltLoad te lo ricorda il giorno prima."
+            "value": "Firmata fino a %@. Reloader te lo ricorda il giorno prima."
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Подпись действует до %@. AltLoad напомнит об этом за день."
+            "value": "Подпись действует до %@. Reloader напомнит об этом за день."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "签名有效期至 %@。AltLoad 会提前一天提醒你。"
+            "value": "签名有效期至 %@。Reloader 会提前一天提醒你。"
           }
         }
       }
@@ -14526,37 +14526,37 @@
         }
       }
     },
-    "Turning one off stops AltLoad asking for it. Apple keeps it on the App ID until you remove it at developer.apple.com, so the profile may still include it.": {
+    "Turning one off stops Reloader asking for it. Apple keeps it on the App ID until you remove it at developer.apple.com, so the profile may still include it.": {
       "extractionState": "manual",
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Beim Ausschalten fordert AltLoad sie nicht mehr an. Apple behält sie auf der App-ID, bis du sie auf developer.apple.com entfernst, das Profil kann sie also weiterhin enthalten."
+            "value": "Beim Ausschalten fordert Reloader sie nicht mehr an. Apple behält sie auf der App-ID, bis du sie auf developer.apple.com entfernst, das Profil kann sie also weiterhin enthalten."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "En désactiver un empêche AltLoad de le demander. Apple le garde sur l'identifiant d'app jusqu'à sa suppression sur developer.apple.com : le profil peut donc encore l'inclure."
+            "value": "En désactiver un empêche Reloader de le demander. Apple le garde sur l'identifiant d'app jusqu'à sa suppression sur developer.apple.com : le profil peut donc encore l'inclure."
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "Disattivandone uno, AltLoad smette di richiederlo. Apple lo mantiene sull'ID app finché non lo rimuovi su developer.apple.com, quindi il profilo potrebbe includerlo ancora."
+            "value": "Disattivandone uno, Reloader smette di richiederlo. Apple lo mantiene sull'ID app finché non lo rimuovi su developer.apple.com, quindi il profilo potrebbe includerlo ancora."
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "После выключения AltLoad перестанет его запрашивать. Apple сохраняет его в App ID, пока вы не удалите его на developer.apple.com, поэтому в профиле оно может остаться."
+            "value": "После выключения Reloader перестанет его запрашивать. Apple сохраняет его в App ID, пока вы не удалите его на developer.apple.com, поэтому в профиле оно может остаться."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "关闭后 AltLoad 不再请求该权限。Apple 会将其保留在 App ID 上，直到你在 developer.apple.com 移除，因此描述文件可能仍包含它。"
+            "value": "关闭后 Reloader 不再请求该权限。Apple 会将其保留在 App ID 上，直到你在 developer.apple.com 移除，因此描述文件可能仍包含它。"
           }
         }
       }
@@ -15891,72 +15891,72 @@
         }
       }
     },
-    "Your password goes only to Apple, and a remembered one stays in this iPhone's Keychain. Apple also needs device-identity headers (\"anisette\"), which AltLoad gets from %@. %@": {
+    "Your password goes only to Apple, and a remembered one stays in this iPhone's Keychain. Apple also needs device-identity headers (\"anisette\"), which Reloader gets from %@. %@": {
       "extractionState": "manual",
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Dein Passwort geht nur an Apple, und ein gemerktes bleibt im Schlüsselbund dieses iPhones. Apple benötigt außerdem Geräteidentitäts-Header („Anisette“), die AltLoad von %@ erhält. %@"
+            "value": "Dein Passwort geht nur an Apple, und ein gemerktes bleibt im Schlüsselbund dieses iPhones. Apple benötigt außerdem Geräteidentitäts-Header („Anisette“), die Reloader von %@ erhält. %@"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Votre mot de passe n'est envoyé qu'à Apple, et s'il est mémorisé, il reste dans le trousseau de cet iPhone. Apple exige aussi des en-têtes d'identité d'appareil (« anisette »), qu'AltLoad obtient de %@. %@"
+            "value": "Votre mot de passe n'est envoyé qu'à Apple, et s'il est mémorisé, il reste dans le trousseau de cet iPhone. Apple exige aussi des en-têtes d'identité d'appareil (« anisette »), qu'Reloader obtient de %@. %@"
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "La password va solo ad Apple, e se la ricordi resta nel portachiavi di questo iPhone. Apple richiede anche intestazioni di identità del dispositivo (“anisette”), che AltLoad ottiene da %@. %@"
+            "value": "La password va solo ad Apple, e se la ricordi resta nel portachiavi di questo iPhone. Apple richiede anche intestazioni di identità del dispositivo (“anisette”), che Reloader ottiene da %@. %@"
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ваш пароль передаётся только Apple, а запомненный хранится в связке ключей этого iPhone. Apple также требует заголовки идентификации устройства («anisette»), которые AltLoad получает от %@. %@"
+            "value": "Ваш пароль передаётся только Apple, а запомненный хранится в связке ключей этого iPhone. Apple также требует заголовки идентификации устройства («anisette»), которые Reloader получает от %@. %@"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "你的密码只发送给 Apple，记住的密码保存在此 iPhone 的钥匙串中。Apple 还需要设备身份标头（“anisette”），AltLoad 从 %@ 获取。%@"
+            "value": "你的密码只发送给 Apple，记住的密码保存在此 iPhone 的钥匙串中。Apple 还需要设备身份标头（“anisette”），Reloader 从 %@ 获取。%@"
           }
         }
       }
     },
-    "Your password goes only to Apple. Apple also requires device-identity headers (\"anisette\"), which AltLoad gets from %@. You can use a secondary Apple ID if you prefer.": {
+    "Your password goes only to Apple. Apple also requires device-identity headers (\"anisette\"), which Reloader gets from %@. You can use a secondary Apple ID if you prefer.": {
       "extractionState": "manual",
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Dein Passwort geht nur an Apple. Apple verlangt außerdem Geräteidentitäts-Header („Anisette“), die AltLoad von %@ erhält. Du kannst auch eine zweite Apple-ID verwenden."
+            "value": "Dein Passwort geht nur an Apple. Apple verlangt außerdem Geräteidentitäts-Header („Anisette“), die Reloader von %@ erhält. Du kannst auch eine zweite Apple-ID verwenden."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Votre mot de passe n'est envoyé qu'à Apple. Apple exige aussi des en-têtes d'identité d'appareil (« anisette »), qu'AltLoad obtient de %@. Vous pouvez utiliser un identifiant Apple secondaire si vous préférez."
+            "value": "Votre mot de passe n'est envoyé qu'à Apple. Apple exige aussi des en-têtes d'identité d'appareil (« anisette »), qu'Reloader obtient de %@. Vous pouvez utiliser un identifiant Apple secondaire si vous préférez."
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "La password va solo ad Apple. Apple richiede anche intestazioni di identità del dispositivo (“anisette”), che AltLoad ottiene da %@. Se preferisci, puoi usare un ID Apple secondario."
+            "value": "La password va solo ad Apple. Apple richiede anche intestazioni di identità del dispositivo (“anisette”), che Reloader ottiene da %@. Se preferisci, puoi usare un ID Apple secondario."
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ваш пароль передаётся только Apple. Apple также требует заголовки идентификации устройства («anisette»), которые AltLoad получает от %@. При желании можно использовать второй Apple ID."
+            "value": "Ваш пароль передаётся только Apple. Apple также требует заголовки идентификации устройства («anisette»), которые Reloader получает от %@. При желании можно использовать второй Apple ID."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "你的密码只发送给 Apple。Apple 还要求设备身份标头（“anisette”），AltLoad 从 %@ 获取。如果愿意，你可以使用备用 Apple ID。"
+            "value": "你的密码只发送给 Apple。Apple 还要求设备身份标头（“anisette”），Reloader 从 %@ 获取。如果愿意，你可以使用备用 Apple ID。"
           }
         }
       }
@@ -16031,37 +16031,37 @@
         }
       }
     },
-    "iOS pauses apps in the background. Keep AltLoad open while AltStore installs or refreshes, or turn on background mode (it plays inaudible audio).": {
+    "iOS pauses apps in the background. Keep Reloader open while AltStore installs or refreshes, or turn on background mode (it plays inaudible audio).": {
       "extractionState": "manual",
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "iOS pausiert Apps im Hintergrund. Lass AltLoad geöffnet, während AltStore installiert oder aktualisiert, oder aktiviere den Hintergrundmodus (er spielt unhörbares Audio ab)."
+            "value": "iOS pausiert Apps im Hintergrund. Lass Reloader geöffnet, während AltStore installiert oder aktualisiert, oder aktiviere den Hintergrundmodus (er spielt unhörbares Audio ab)."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "iOS met les apps en pause en arrière-plan. Gardez AltLoad ouvert pendant qu'AltStore installe ou actualise, ou activez le mode arrière-plan (il diffuse un son inaudible)."
+            "value": "iOS met les apps en pause en arrière-plan. Gardez Reloader ouvert pendant qu'AltStore installe ou actualise, ou activez le mode arrière-plan (il diffuse un son inaudible)."
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "iOS mette in pausa le app in background. Tieni aperta AltLoad mentre AltStore installa o aggiorna, oppure attiva la modalità in background (riproduce audio non udibile)."
+            "value": "iOS mette in pausa le app in background. Tieni aperta Reloader mentre AltStore installa o aggiorna, oppure attiva la modalità in background (riproduce audio non udibile)."
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "iOS приостанавливает приложения в фоне. Не закрывайте AltLoad, пока AltStore устанавливает или обновляет приложения, либо включите фоновый режим (воспроизводит неслышимое аудио)."
+            "value": "iOS приостанавливает приложения в фоне. Не закрывайте Reloader, пока AltStore устанавливает или обновляет приложения, либо включите фоновый режим (воспроизводит неслышимое аудио)."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "iOS 会暂停后台 App。在 AltStore 安装或刷新时请保持 AltLoad 打开，或开启后台模式（会播放听不见的音频）。"
+            "value": "iOS 会暂停后台 App。在 AltStore 安装或刷新时请保持 Reloader 打开，或开启后台模式（会播放听不见的音频）。"
           }
         }
       }

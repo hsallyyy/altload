@@ -14,7 +14,7 @@ struct InstallFlowView: View {
     @State private var email = AppleIDStore.email
     @State private var password = ""
     @State private var remember = true
-    @AppStorage(ExtensionsMode.defaultsKey) private var extensionsRaw = ExtensionsMode.keep.rawValue
+    @AppStorage(ExtensionsMode.defaultsKey) private var extensionsRaw = ExtensionsMode.mainProfile.rawValue
     @FocusState private var focus: Field?
 
     private enum Field { case email, password }
@@ -58,10 +58,6 @@ struct InstallFlowView: View {
         .interactiveDismissDisabled()
         .fullScreenCover(item: $controller.twoFactor) { prompt in
             TwoFactorSheet(prompt: prompt) { controller.respond($0) }
-                .auroraTheme()
-        }
-        .fullScreenCover(item: $controller.revoke) { prompt in
-            RevokeSheet(prompt: prompt) { controller.respond($0) }
                 .auroraTheme()
         }
         .onAppear {
@@ -149,7 +145,7 @@ struct InstallFlowView: View {
                     VStack(alignment: .leading, spacing: 6) {
                         Label(String(localized: "Pair this iPhone first"), systemImage: "link.badge.plus")
                             .font(.headline)
-                        Text("AltLoad needs this iPhone's pairing file to talk to it, the way a computer would.")
+                        Text("Reloader needs this iPhone's pairing file to talk to it, the way a computer would.")
                             .font(.subheadline)
                             .foregroundStyle(Aurora.secondaryText)
                     }
@@ -171,7 +167,7 @@ struct InstallFlowView: View {
                     VStack(alignment: .leading, spacing: 10) {
                         Label(String(localized: "Turn on LocalDevVPN"), systemImage: "network.badge.shield.half.filled")
                             .font(.headline)
-                        Text("LocalDevVPN loops traffic for \(LocalDevVPN.targetIP) back into this iPhone, so AltLoad can reach it like a computer would. It only carries that one address, and your normal internet traffic isn't affected.")
+                        Text("LocalDevVPN loops traffic for \(LocalDevVPN.targetIP) back into this iPhone, so Reloader can reach it like a computer would. It only carries that one address, and your normal internet traffic isn't affected.")
                             .font(.subheadline)
                             .foregroundStyle(Aurora.secondaryText)
                         if !LocalDevVPN.isInstalled {
@@ -193,12 +189,12 @@ struct InstallFlowView: View {
                         Text("\(app.name) \(app.version) is on your Home Screen")
                             .font(.headline)
                         if let expiration = app.expiration {
-                            Text("Signed until \(expiration.formatted(date: .abbreviated, time: .shortened)). AltLoad reminds you the day before.")
+                            Text("Signed until \(expiration.formatted(date: .abbreviated, time: .shortened)). Reloader reminds you the day before.")
                                 .font(.subheadline)
                                 .foregroundStyle(Aurora.secondaryText)
                         }
                         if app.store == .altstore || app.store == .altstoreBeta {
-                            Label(String(localized: "AltStore uses AltLoad as its AltServer. Keep AltLoad open while AltStore installs or refreshes, or turn on background mode in Tools › AltServer."), systemImage: "server.rack")
+                            Label(String(localized: "AltStore uses Reloader as its AltServer. Keep Reloader open while AltStore installs or refreshes, or turn on background mode in Tools › AltServer."), systemImage: "server.rack")
                                 .font(.footnote)
                                 .foregroundStyle(Aurora.mist)
                         }
@@ -267,7 +263,7 @@ struct InstallFlowView: View {
             }
             .padding(.top, 2)
 
-            Text("Keep AltLoad open until this finishes.")
+            Text("Keep Reloader open until this finishes.")
                 .font(.caption)
                 .foregroundStyle(Aurora.secondaryText)
         }
@@ -354,10 +350,18 @@ struct InstallFlowView: View {
             }
             .cardSurface(radius: 18)
 
+            if !email.trimmingCharacters(in: .whitespaces).isEmpty && !SigningKeyStore.hasKey(for: email) {
+                Label(String(localized: "No signing key is imported for this Apple ID. Import iloader's certificate in Tools › Signing Certificate first."),
+                      systemImage: "exclamationmark.triangle.fill")
+                    .font(.footnote.weight(.semibold))
+                    .foregroundStyle(Aurora.ember)
+                    .padding(.horizontal, 4)
+            }
+
             extensionsPicker
                 .padding(.top, 8)
 
-            Text("Your password goes only to Apple, and a remembered one stays in this iPhone's Keychain. Apple also needs device-identity headers (\"anisette\"), which AltLoad gets from \(anisetteHost). \(limitNote)")
+            Text("Your password goes only to Apple, and a remembered one stays in this iPhone's Keychain. Apple also needs device-identity headers (\"anisette\"), which Reloader gets from \(anisetteHost). \(limitNote)")
                 .font(.system(size: 13))
                 .foregroundStyle(Aurora.secondaryText)
                 .padding(.horizontal, 4)
@@ -366,10 +370,10 @@ struct InstallFlowView: View {
     }
 
     private var extensionsMode: ExtensionsMode {
-        ExtensionsMode(rawValue: extensionsRaw) ?? .keep
+        ExtensionsMode(rawValue: extensionsRaw) ?? .mainProfile
     }
 
-    /// SideStore's three choices for widgets and other extensions inside the app.
+    /// Keep the app's widgets and other extensions (on the main profile) or leave them out.
     private var extensionsPicker: some View {
         VStack(alignment: .leading, spacing: 10) {
             SectionLabel(title: "App Extensions")

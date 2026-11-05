@@ -1,12 +1,11 @@
 import SwiftUI
 
-/// Certificate manager for the signed-in Apple ID's own free development
-/// certificates: view their details and revoke them. Also shows the App IDs
-/// and registered devices on the team, and a small Tools section.
+/// The signed-in Apple ID's own development certificates and their details, with the
+/// one iloader made (the only one Reloader signs with) marked. Nothing here revokes a
+/// certificate. Also shows the App IDs and registered devices on the team.
 struct CertificatesView: View {
     @StateObject private var controller = CertificatesController.shared
     @State private var showSignIn = false
-    @State private var pendingRevoke: DevCertificate?
 
     var body: some View {
         AuroraScreen {
@@ -47,19 +46,6 @@ struct CertificatesView: View {
             TwoFactorSheet(prompt: prompt) { controller.respond($0) }
                 .auroraTheme()
         }
-        .confirmationDialog(
-            String(localized: "Revoke this certificate?"),
-            isPresented: Binding(get: { pendingRevoke != nil }, set: { if !$0 { pendingRevoke = nil } }),
-            presenting: pendingRevoke
-        ) { cert in
-            Button(String(localized: "Revoke \(cert.displayName)"), role: .destructive) {
-                controller.revoke([cert])
-                pendingRevoke = nil
-            }
-            Button(String(localized: "Cancel"), role: .cancel) { pendingRevoke = nil }
-        } message: { _ in
-            Text("Apps signed with this certificate will stop opening until they're signed again. This can't be undone.")
-        }
         .animation(.spring(duration: 0.5, bounce: 0.2), value: controller.phase)
     }
 
@@ -71,7 +57,7 @@ struct CertificatesView: View {
             Text("Your certificates")
                 .font(.title2.bold())
                 .foregroundStyle(Aurora.frost)
-            Text("Manage the development certificates on your own Apple ID.")
+            Text("The development certificates on your own Apple ID.")
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
                 .multilineTextAlignment(.center)
@@ -87,7 +73,7 @@ struct CertificatesView: View {
                 VStack(alignment: .leading, spacing: 8) {
                     Text("Sign in to see your certificates")
                         .font(.headline)
-                    Text("AltLoad reads and revokes the development certificates on your Apple ID — the same ones it uses to sign apps. A free account allows a limited number at once.")
+                    Text("Reloader reads the development certificates on your Apple ID. It signs only with the one iloader made on your PC, and never creates or revokes any.")
                         .font(.subheadline)
                         .foregroundStyle(.secondary)
                 }
@@ -145,12 +131,19 @@ struct CertificatesView: View {
             VStack(spacing: 10) {
                 SectionLabel(title: "Certificates", trailing: "\(overview.certificates.count)")
                 if overview.certificates.isEmpty {
-                    GlassCard {
-                        Text("No development certificates yet. One is created the first time you install an app.")
+                    GlassCard(tint: Aurora.danger) {
+                        Text("No development certificates on this Apple ID. Reloader never creates one: install an app once with iloader on your PC, then import its certificate in Tools › Signing Certificate.")
                             .font(.subheadline)
                             .foregroundStyle(.secondary)
                     }
                 } else {
+                    if !overview.certificates.contains(where: \.isInUse) {
+                        GlassCard(tint: Aurora.ember) {
+                            Text("None of these looks like iloader's certificate. If it was revoked or has expired, install once with iloader on your PC to get a new one, then import it again in Tools › Signing Certificate.")
+                                .font(.subheadline)
+                                .foregroundStyle(.secondary)
+                        }
+                    }
                     ForEach(overview.certificates) { cert in
                         certificateCard(cert)
                     }
@@ -242,8 +235,8 @@ struct CertificatesView: View {
                         }
                     }
                     Spacer(minLength: 0)
-                    if cert.isAltLoad {
-                        GlassChip(text: String(localized: "This app"), tint: Aurora.accent)
+                    if cert.isInUse {
+                        GlassChip(text: String(localized: "In use"), tint: Aurora.accent)
                     }
                 }
 
@@ -255,17 +248,6 @@ struct CertificatesView: View {
                     if !cert.serial.isEmpty { detail(String(localized: "Serial"), cert.serial, mono: true) }
                     if !cert.machineName.isEmpty { detail(String(localized: "Machine"), cert.machineName) }
                 }
-
-                Button(role: .destructive) {
-                    pendingRevoke = cert
-                } label: {
-                    Label(String(localized: "Revoke"), systemImage: "trash")
-                        .font(.subheadline.weight(.semibold))
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 4)
-                }
-                .buttonStyle(AltLoadButtonStyle(prominent: false, tint: Aurora.danger))
-                .disabled(controller.isBusy)
             }
         }
     }
@@ -275,29 +257,6 @@ struct CertificatesView: View {
             SectionLabel(title: "Tools")
             GlassCard {
                 VStack(spacing: 14) {
-                    let expired = overview.certificates.filter(\.isExpired)
-                    toolRow(
-                        title: "Revoke all expired",
-                        detail: expired.isEmpty ? String(localized: "None to revoke") : expired.count == 1 ? String(localized: "1 expired certificate") : String(localized: "\(expired.count) expired certificates"),
-                        systemImage: "trash.slash",
-                        tint: Aurora.danger,
-                        disabled: expired.isEmpty || controller.isBusy
-                    ) {
-                        controller.revoke(expired)
-                    }
-                    Divider().overlay(Aurora.frost.opacity(0.1))
-                    toolRow(
-                        title: "Free up a slot",
-                        detail: String(localized: "Revoke the oldest certificate"),
-                        systemImage: "clock.arrow.circlepath",
-                        tint: Aurora.accent,
-                        disabled: overview.certificates.isEmpty || controller.isBusy
-                    ) {
-                        if let oldest = overview.certificates.min(by: { ($0.expiration ?? .distantFuture) < ($1.expiration ?? .distantFuture) }) {
-                            pendingRevoke = oldest
-                        }
-                    }
-                    Divider().overlay(Aurora.frost.opacity(0.1))
                     toolRow(
                         title: "Sign out",
                         detail: AppleIDStore.email,

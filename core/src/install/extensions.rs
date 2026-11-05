@@ -1,16 +1,17 @@
-// What to do with an app's extensions (PlugIns) when signing, the three choices
-// SideStore offers: keep them with their own App IDs, keep them but sign them with
-// the main app's profile, or strip them out.
+// What to do with an app's extensions (PlugIns) when signing, the choices SideStore
+// offers: keep them, keep them but sign them with the main app's profile, or strip
+// them out. This build signs kept extensions with the main profile either way, as
+// iloader 2.4.1 does, because that's the signing path that takes iloader's
+// certificate instead of asking Apple for one.
 
 use super::*;
 use isideload::dev::app_groups::AppGroupsApi;
 use isideload::sideload::application::Application;
-use isideload::util::callbacks::MaxCertsCallback;
 
 #[derive(Clone, Copy, PartialEq, Eq)]
 pub(super) enum ExtensionsMode {
-    /// Every extension gets its own App ID and profile. A free Apple ID only has
-    /// 10 App IDs a week, so apps with many extensions use them up quickly.
+    /// Extensions stay in the app. Upstream gave each its own App ID; this build
+    /// signs them like `MainProfile`, so an app uses one of the 10 free App IDs a week.
     Keep,
     /// Extensions stay in the app but are signed with the main app's profile and
     /// entitlements, so only one App ID is used. Some extensions won't run this way.
@@ -40,23 +41,17 @@ pub(super) fn remove_extensions(app: &Path) -> Result<(), String> {
     Ok(())
 }
 
-/// isideload's `sign_app`, except only the main app gets an App ID and every
-/// extension is signed with the main app's profile and entitlements.
-#[allow(clippy::too_many_arguments)]
-pub(super) async fn sign_with_main_profile<C: MaxCertsCallback>(
+/// isideload's own signing, except only the main app gets an App ID, every
+/// extension is signed with the main app's profile and entitlements, and the
+/// certificate is passed in (iloader's) instead of being looked up or made.
+pub(super) async fn sign_with_main_profile(
     dev: &mut DeveloperSession,
     team: &DeveloperTeam,
-    apple_id: &str,
-    machine_name: &str,
-    storage: &dyn SideloadingStorage,
-    max_certs: &MaxCertsBehavior<C>,
+    cert: &CertificateIdentity,
     app_dir: PathBuf,
     udid: &str,
     cbs: Callbacks,
 ) -> Result<PathBuf, String> {
-    let cert = CertificateIdentity::retrieve(machine_name, apple_id, dev, team, storage, max_certs)
-        .await
-        .map_err(|e| err("Couldn't get a signing certificate", e))?;
     cbs.progress("Signing…", 0.1);
 
     let mut app = Application::new(app_dir).map_err(|e| err("Couldn't read the app", e))?;
@@ -99,9 +94,16 @@ pub(super) async fn sign_with_main_profile<C: MaxCertsCallback>(
     dev.assign_app_group(team, &group, &app_id, None::<DeveloperDeviceType>)
         .await
         .map_err(|e| err("Couldn't assign the app group", e))?;
+    // iloader asks for Increased Memory Limit on every install, so LiveContainer's
+    // guests keep it when this registers the App ID again after it lapses.
+    if matches!(special, Some(SpecialApp::SideStoreLc | SpecialApp::LiveContainer)) {
+        dev.add_increased_memory_limit(team, &app_id)
+            .await
+            .map_err(|e| err("Couldn't enable Increased Memory Limit", e))?;
+    }
     cbs.progress("Signing…", 0.15);
 
-    app.apply_special_app_behavior(&special, &group_identifier, &cert, None, Some(udid))
+    app.apply_special_app_behavior(&special, &group_identifier, cert, None, Some(udid))
         .await
         .map_err(|e| err("Couldn't prepare the app", e))?;
 
@@ -133,7 +135,7 @@ pub(super) async fn sign_with_main_profile<C: MaxCertsCallback>(
         cbs.progress("Signing…", f64::from(f).clamp(0.0, 1.0));
         std::future::ready(())
     };
-    isideload::sideload::sign::sign(&mut app, &cert, &profile, &mut borrowed, &special, team, Some(sign_progress))
+    isideload::sideload::sign::sign(&mut app, cert, &profile, &mut borrowed, &special, team, Some(sign_progress))
         .await
         .map_err(|e| err("Signing failed", e))?;
 

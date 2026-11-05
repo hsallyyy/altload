@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// A capability AltLoad can switch on for AltStore's App ID before signing. Apple
+/// A capability Reloader can switch on for AltStore's App ID before signing. Apple
 /// then puts its entitlement in the provisioning profile, and the signature carries it.
 struct Capability: Identifiable, Hashable {
     enum Tier { case free, paid }

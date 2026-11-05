@@ -1,8 +1,8 @@
 import SwiftUI
 
-/// AltLoad's palette: a pure black base with a dim navy glow, solid navy surfaces and a deep blue accent. The dark
-/// green and white come from the app icon. The enum keeps its old name so every
-/// screen picks it up.
+/// Reloader's palette (AltLoad's): a pure black base with a dim navy glow, solid navy
+/// surfaces and a deep blue accent. The violet and amber come from the app icon. The enum
+/// keeps its old name so every screen picks it up.
 enum Aurora {
     // Base, from darkest to lightest.
     static let night = Color.black
@@ -16,7 +16,8 @@ enum Aurora {
     static let accentDeep = Color(red: 0.122, green: 0.282, blue: 0.620) // #1F489E
     static let sky = Color(red: 0.490, green: 0.690, blue: 0.980)        // #7DB0FA
     static let mist = Color(red: 0.640, green: 0.720, blue: 0.840)       // #A3B8D6
-    static let forest = Color(red: 0.090, green: 0.420, blue: 0.290)     // #176B4A, the icon's green
+    static let forest = Color(red: 0.090, green: 0.420, blue: 0.290)     // #176B4A
+    static let markGlow = Color(red: 0.770, green: 0.330, blue: 0.180)   // #C4542E, the icon's amber
     static let ember = Color.orange
     static let frost = Color.white
 
@@ -36,9 +37,9 @@ enum Aurora {
         startPoint: .top,
         endPoint: .bottom)
 
-    /// The icon's background: midnight into dark green.
+    /// The icon's background: deep violet into amber.
     static let markGradient = LinearGradient(
-        colors: [Color(red: 0.035, green: 0.075, blue: 0.130), Color(red: 0.020, green: 0.200, blue: 0.140)],
+        colors: [Color(red: 0.170, green: 0.060, blue: 0.320), markGlow],
         startPoint: .top,
         endPoint: .bottomTrailing)
 }

@@ -10,12 +10,14 @@ enum DeviceOps {
     enum OpError: LocalizedError {
         case noPairing
         case vpnOff
+        case refreshing
         case failed(String)
 
         var errorDescription: String? {
             switch self {
             case .noPairing: String(localized: "There's no pairing file for this iPhone yet. Create one in Tools › Pair.")
-            case .vpnOff: String(localized: "LocalDevVPN is off. Turn it on so AltLoad can reach this iPhone.")
+            case .vpnOff: String(localized: "LocalDevVPN is off. Turn it on so Reloader can reach this iPhone.")
+            case .refreshing: String(localized: "Reloader is refreshing app profiles. Try again when that's done.")
             case .failed(let message): message
             }
         }
@@ -23,6 +25,11 @@ enum DeviceOps {
 
     static let queue = DispatchQueue(label: "altload.device-ops", qos: .userInitiated)
     static let longRunningQueue = DispatchQueue(label: "altload.device-ops.long", qos: .userInitiated)
+
+    /// Operations running on `queue`. A profile refresh waits for these to finish, and none
+    /// start while it runs, so two tunnels never add and remove profiles at the same time.
+    /// A location session (on `longRunningQueue`) never touches profiles and isn't counted.
+    @MainActor private(set) static var running = 0
 
     /// `progress(stage, fraction)`; fraction is nil when indeterminate. Called on the main actor.
     @discardableResult
@@ -35,12 +42,25 @@ enum DeviceOps {
         guard let pairingPath else { throw OpError.noPairing }
         guard LocalDevVPN.isActive else { throw OpError.vpnOff }
 
+        let counted = queue !== longRunningQueue
+        let started: Bool = await MainActor.run {
+            guard !ProfileRefresher.shared.isBusy else { return false }
+            if counted { DeviceOps.running += 1 }
+            return true
+        }
+        guard started else { throw OpError.refreshing }
+        defer {
+            if counted { Task { @MainActor in DeviceOps.running -= 1 } }
+        }
+
         let host = LocalDevVPN.targetIP
         let port = LocalDevVPN.remotePairingPort
-        // Never take AltLoad's own provisioning profile off the device: AltStore's
-        // list of active apps doesn't include it, and AltLoad would stop opening.
+        // Never take Reloader's own provisioning profile off the device: AltStore's list of
+        // active apps doesn't include it, and Reloader would stop opening. Inside
+        // LiveContainer that's LiveContainer's profile, since Reloader has none of its own.
+        // The core keeps every LiveContainer's profiles too, and their extensions'.
         var request = request
-        request["protect"] = [Bundle.main.bundleIdentifier].compactMap { $0 }
+        request["protect"] = [Bundle.main.bundleIdentifier, Hosting.hostBundleID].compactMap { $0 }
         let json = String(data: try JSONSerialization.data(withJSONObject: request), encoding: .utf8) ?? "{}"
         let box = ProgressBox(progress)
 
@@ -58,7 +78,7 @@ enum DeviceOps {
                     var config = AltLoadInstallConfig(
                         apple_id: nil, password: nil, anisette_url: nil,
                         pairing_file_path: c(pairingPath),
-                        host_name: c("AltLoad"),
+                        host_name: c(PairingController.hostName),
                         endpoints: endpointPointer,
                         endpoint_count: 1,
                         ipa_path: nil, device_name: nil, machine_name: nil, server_id: nil,

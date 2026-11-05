@@ -7,7 +7,9 @@ final class LocalNetworkAuthorization {
     private var listener: NWListener?
     private var continuation: CheckedContinuation<Bool, Never>?
 
-    private let probeType = "_altloadprobe._tcp"
+    /// Bonjour only works for types the app's Info.plist lists. Inside LiveContainer that's
+    /// LiveContainer's list, which declares _stikpairprobe._tcp for this same purpose.
+    private let probeType = Hosting.isHosted ? "_stikpairprobe._tcp" : "_reloaderprobe._tcp"
 
     func request(timeout: TimeInterval = 60) async -> Bool {
         await withCheckedContinuation { (cont: CheckedContinuation<Bool, Never>) in
@@ -17,7 +19,7 @@ final class LocalNetworkAuthorization {
             params.includePeerToPeer = true
 
             let listener = try? NWListener(using: params)
-            listener?.service = NWListener.Service(name: "AltLoadProbe", type: probeType)
+            listener?.service = NWListener.Service(name: "ReloaderProbe", type: probeType)
             listener?.newConnectionHandler = { $0.cancel() }
             listener?.stateUpdateHandler = { [weak self] state in
                 if case .failed = state {
@@ -28,8 +30,22 @@ final class LocalNetworkAuthorization {
 
             let browser = NWBrowser(for: .bonjour(type: probeType, domain: nil), using: params)
             browser.stateUpdateHandler = { [weak self] state in
-                if case .failed = state {
+                switch state {
+                case .failed:
                     MainActor.assumeIsolated { self?.finish(false) }
+                // A refused Bonjour browse waits (kDNSServiceErr_PolicyDenied) instead of
+                // failing. Inside LiveContainer that's what a denied permission looks like,
+                // so don't sit out the whole timeout. The browse also waits while the Local
+                // Network alert is still up, so give the user time to answer it first.
+                case .waiting where Hosting.isHosted:
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 15) { [weak self] in
+                        MainActor.assumeIsolated {
+                            guard let self, case .waiting = self.browser?.state else { return }
+                            self.finish(false)
+                        }
+                    }
+                default:
+                    break
                 }
             }
             browser.browseResultsChangedHandler = { [weak self] results, _ in

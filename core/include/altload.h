@@ -43,8 +43,14 @@ void altload_result_free(AltLoadResult *r);
 
 /* ---- On-device sideloading (core/src/install/mod.rs) ---- */
 
+/* Installs sign only with the certificate iloader made, found on the account by
+   the imported key (altload_import_signing_key below); nothing creates or revokes
+   a certificate, and an install without an imported key fails before sign-in. */
+
 typedef void (*AltLoadProgressCb)(void *ctx, const char *stage, double fraction); /* fraction < 0: indeterminate */
-typedef void (*AltLoadPromptCb)(void *ctx, int32_t kind, const char *json);       /* 1 = two-factor, 2 = revoke certificates */
+/* kind 1 = two-factor: answer with altload_install_session_respond within 120 s,
+   or it counts as "abort". Kind 2 (revoke certificates) is never sent any more. */
+typedef void (*AltLoadPromptCb)(void *ctx, int32_t kind, const char *json);
 
 typedef struct {
     const char *host;
@@ -69,7 +75,8 @@ typedef struct {
        App ID before signing (e.g. "INCREASED_MEMORY_LIMIT,PUSH_NOTIFICATIONS").
        NULL or "" for none. */
     const char *capabilities;
-    /* App extensions: 0 keep, 1 keep and sign with the main profile, 2 remove. */
+    /* App extensions: 0 keep, 1 keep and sign with the main profile, 2 remove.
+       0 and 1 both sign extensions with the main app's profile (one App ID). */
     int32_t extensions_mode;
 } AltLoadInstallConfig;
 
@@ -98,10 +105,11 @@ void altload_install_session_free(AltLoadInstallSession *session);
 void altload_install_result_free(AltLoadInstallResult *r);
 
 
-/* ---- Certificate manager: your own Apple ID (core/src/install/mod.rs) ---- */
+/* ---- Certificate manager: your own Apple ID (core/src/install/account.rs) ---- */
 
-/* Runs {"op":"overview"} or {"op":"revoke","serials":[...]} against the Apple
-   ID's own team. Reuses an AltLoadInstallSession for 2FA prompts and cancel.
+/* Runs {"op":"overview"} against the Apple ID's own team. {"op":"revoke",...}
+   is refused (returns 1) before signing in: this build never revokes a
+   certificate. Reuses an AltLoadInstallSession for 2FA prompts and cancel.
    Returns 0 with overview JSON in *out_json, or 1 with an error message.
    Free *out_json with altload_string_free. Blocking. */
 int32_t altload_account_session_run(AltLoadInstallSession *session,
@@ -116,11 +124,64 @@ int32_t altload_account_session_run(AltLoadInstallSession *session,
 void altload_string_free(char *s);
 
 
+/* ---- iloader's signing key (core/src/install/identity.rs) ---- */
+
+/* Saves iloader's private key for apple_id (trimmed, lowercased), stored under
+   sha256(apple_id)/key. data is a .p12 (password required) or a raw RSA key:
+   PKCS#8/PKCS#1 DER, PEM or base64 (password NULL). Offline. Returns 0 with
+   {"fingerprint":String,"certificateSerial":String|null,"certificateExpires":Int|null}
+   (unix seconds) in *out_json, or 1 with an error message; 2 if out_json is NULL.
+   Free *out_json with altload_string_free. Installs and refreshes then use only
+   the certificate on the account whose public key is this key's. */
+int32_t altload_import_signing_key(const char *apple_id,
+                                   const uint8_t *data,
+                                   size_t len,
+                                   const char *password,
+                                   char **out_json);
+
+/* 1 if a key is imported for apple_id (any case), else 0. */
+int32_t altload_has_signing_key(const char *apple_id);
+
+
+/* ---- Profile-only refresh (core/src/install/refresh.rs) ---- */
+
+/* Renews the 7-day profiles of installed apps signed with iloader's certificate
+   and installs them with misagent; nothing is re-signed or reinstalled. Targets:
+   hostBundleId (the LiveContainer this runs in; when null, iloader's
+   com.kdt.livecontainer.<team>) and its extensions' profiles, then this app if
+   it's installed itself, then the team's other apps whose profile lists that
+   certificate; or only the bundle IDs in "only". A new profile goes in before
+   older copies of it come off, and must list this device. Lapsed App IDs are
+   registered again (with their app groups and Increased Memory Limit) when
+   registerMissingAppIds is true, never in a dry run, which changes nothing on
+   the account or the device.
+   config: apple_id, password, anisette_url, pairing_file_path, host_name,
+   endpoints/endpoint_count and device_name are used; the rest is ignored.
+   request_json: {"dryRun":Bool,"registerMissingAppIds":Bool,"only":[String]|null,
+   "hostBundleId":String|null}. Prompts: kind 1 (two-factor), as for installs.
+   Returns 0 with
+   {"team":String,"udid":String,"dryRun":Bool,"appIdsAvailable":Int|null,
+    "results":[{"bundleId":String,"app":String,
+                "status":"refreshed"|"planned"|"skipped"|"failed",
+                "reason":String|null,"oldExpires":Int|null,"newExpires":Int|null}]}
+   in *out_json, or 1 with an error message. Free *out_json with
+   altload_string_free. Blocking. */
+int32_t altload_refresh_profiles_run(AltLoadInstallSession *session,
+                                     const AltLoadInstallConfig *config,
+                                     const char *request_json,
+                                     AltLoadProgressCb progress_cb,
+                                     AltLoadPromptCb prompt_cb,
+                                     void *ctx,
+                                     char **out_json);
+
+
 /* ---- Device ops: on-device AltServer + files into apps (core/src/install/device.rs) ---- */
 
 /* Opens the tunnel from config (pairing_file_path, host_name, endpoints; the
    Apple ID fields are ignored) and runs one op from request_json:
    install_app, install_profiles, remove_profiles, remove_app, list_apps, place_file.
+   Profiles of bundle IDs in "protect", of their extensions and of any
+   LiveContainer are never removed, and remove_app refuses those apps.
    Returns 0 with result JSON in *out_json, or 1 with an error message.
    Free *out_json with altload_string_free. Blocking. */
 int32_t altload_device_run(const AltLoadInstallConfig *config,

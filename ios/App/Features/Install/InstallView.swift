@@ -1,18 +1,22 @@
 import SwiftUI
 import UniformTypeIdentifiers
 
-/// Pick a store (AltStore, AltStore Beta, SideStore or SideStore + LC), see whether
-/// it's really on this iPhone, and install, update or refresh it. The install
-/// itself runs in InstallFlowView.
+/// Refresh the profiles of the apps signed with iloader's certificate, or pick a store
+/// (AltStore, AltStore Beta, SideStore or SideStore + LC), see whether it's really on
+/// this iPhone, and install, update or refresh it. The install itself runs in
+/// InstallFlowView.
 struct InstallView: View {
     @Binding var selectedTab: AppTab
     @StateObject private var controller = InstallController.shared
     @StateObject private var pairings = PairingStore.shared
     @ObservedObject private var entitlements = EntitlementSettings.shared
+    @ObservedObject private var refresher = ProfileRefresher.shared
     @AppStorage(StoreApp.defaultsKey) private var selectedRaw = StoreApp.altstore.rawValue
     @State private var showImporter = false
     @State private var importError: String?
     @State private var vpnActive = LocalDevVPN.isActive
+    @State private var iloaderPairing = Hosting.iloaderPairingFile
+    @State private var pairingError: String?
     @Environment(\.scenePhase) private var scenePhase
 
     private var store: StoreApp { StoreApp(rawValue: selectedRaw) ?? .altstore }
@@ -20,6 +24,12 @@ struct InstallView: View {
     var body: some View {
         NavigationStack {
             AuroraScreen {
+                if pairings.selfPairing == nil, let iloaderPairing {
+                    iloaderPairingCard(iloaderPairing)
+                } else if pairings.selfPairing != nil {
+                    ProfileRefreshCard()
+                }
+
                 storeMenu
 
                 hero
@@ -29,7 +39,7 @@ struct InstallView: View {
                         VStack(alignment: .leading, spacing: 6) {
                             Label(String(localized: "Pair this iPhone first"), systemImage: "link.badge.plus")
                                 .font(.headline)
-                            Text("AltLoad needs this iPhone's pairing file to talk to it, the way a computer would.")
+                            Text("Reloader needs this iPhone's pairing file to talk to it, the way a computer would.")
                                 .font(.subheadline)
                                 .foregroundStyle(Aurora.secondaryText)
                         }
@@ -41,6 +51,7 @@ struct InstallView: View {
                     GlassActionButton(title: LocalizedStringKey(primaryTitle), systemImage: primarySymbol, prominent: true) {
                         controller.begin(.store(store))
                     }
+                    .disabled(refresher.isBusy)
                 }
 
                 if store.isSideStore, controller.releases[store] == nil, controller.catalogErrors[store] != nil {
@@ -56,7 +67,7 @@ struct InstallView: View {
                     yourApps
                 }
 
-                Text("AltLoad signs \(store.name) with your Apple ID and installs it straight onto this iPhone. With a free Apple ID it lasts 7 days, and AltLoad reminds you the day before.")
+                Text("Reloader signs \(store.name) with iloader's certificate and installs it straight onto this iPhone. With a free Apple ID it lasts 7 days, and Reloader reminds you the day before.")
                     .font(.system(size: 13))
                     .foregroundStyle(Aurora.secondaryText)
                     .multilineTextAlignment(.center)
@@ -77,7 +88,7 @@ struct InstallView: View {
                         Button(String(localized: "Install IPA from Files…"), systemImage: "doc.badge.plus") {
                             showImporter = true
                         }
-                        .disabled(pairings.selfPairing == nil || controller.isBusy)
+                        .disabled(pairings.selfPairing == nil || controller.isBusy || refresher.isBusy)
                     } label: {
                         Label(String(localized: "More"), systemImage: "ellipsis")
                     }
@@ -93,6 +104,7 @@ struct InstallView: View {
             .onChange(of: scenePhase) { _, phase in
                 guard phase == .active else { return }
                 vpnActive = LocalDevVPN.isActive
+                iloaderPairing = Hosting.iloaderPairingFile
                 Task { await controller.checkDevice(store) }
             }
             .fileImporter(isPresented: $showImporter, allowedContentTypes: [.ipa, .zip, .data]) { result in
@@ -112,8 +124,39 @@ struct InstallView: View {
             } message: {
                 Text(importError ?? "")
             }
+            .alert(String(localized: "Couldn't use iloader's pairing file"), isPresented: Binding(get: { pairingError != nil }, set: { if !$0 { pairingError = nil } })) {
+                Button(String(localized: "OK")) { pairingError = nil }
+            } message: {
+                Text(pairingError ?? "")
+            }
         }
         .animation(.spring(duration: 0.45, bounce: 0.2), value: selectedRaw)
+    }
+
+    // MARK: - iloader's pairing file
+
+    /// Inside LiveContainer, iloader has usually put this iPhone's pairing file into
+    /// LiveContainer's SideStore folder already, so offer that before sending anyone to Pair.
+    private func iloaderPairingCard(_ file: URL) -> some View {
+        VStack(spacing: 12) {
+            GlassCard(tint: Aurora.accent) {
+                VStack(alignment: .leading, spacing: 6) {
+                    Label(String(localized: "Use iloader's pairing file"), systemImage: "doc.badge.gearshape")
+                        .font(.headline)
+                    Text("iloader put this iPhone's pairing file into \(Hosting.hostName) on your PC. Reloader can use the same file to reach this iPhone over LocalDevVPN.")
+                        .font(.subheadline)
+                        .foregroundStyle(Aurora.secondaryText)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+            }
+            GlassActionButton(title: "Use iloader's Pairing File", systemImage: "square.and.arrow.down", prominent: true) {
+                do {
+                    _ = try pairings.importForThisDevice(at: file, name: UIDevice.current.name)
+                } catch {
+                    pairingError = error.localizedDescription
+                }
+            }
+        }
     }
 
     // MARK: - Store picker
@@ -181,8 +224,8 @@ struct InstallView: View {
                 Label(String(localized: "\(store.name)'s repository is down"), systemImage: "exclamationmark.icloud.fill")
                     .font(.headline)
                 Text(StoreCatalog.newestCachedIPA(store) != nil
-                     ? String(localized: "AltLoad will use the copy it downloaded last time. You can also pick an IPA you have.")
-                     : String(localized: "AltLoad tried the source, its mirror and GitHub. Try again later, or pick a \(store.name) IPA you already have."))
+                     ? String(localized: "Reloader will use the copy it downloaded last time. You can also pick an IPA you have.")
+                     : String(localized: "Reloader tried the source, its mirror and GitHub. Try again later, or pick a \(store.name) IPA you already have."))
                     .font(.subheadline)
                     .foregroundStyle(Aurora.secondaryText)
                     .fixedSize(horizontal: false, vertical: true)
@@ -262,7 +305,7 @@ struct InstallView: View {
         return controller.catalogErrors[store] ?? String(localized: "Checking the \(store.name) source…")
     }
 
-    /// What's really on the iPhone, from the device check, next to AltLoad's record.
+    /// What's really on the iPhone, from the device check, next to Reloader's record.
     @ViewBuilder
     private var statusChip: some View {
         let record = controller.installed(store)
@@ -276,7 +319,7 @@ struct InstallView: View {
                 GlassChip(text: String(localized: "Not installed"), systemImage: "circle.dashed")
             }
         case .installed(let version) where record == nil:
-            GlassChip(text: version.map { String(localized: "On this iPhone · \($0), not signed by AltLoad") } ?? String(localized: "On this iPhone, not signed by AltLoad"),
+            GlassChip(text: version.map { String(localized: "On this iPhone · \($0), not signed by Reloader") } ?? String(localized: "On this iPhone, not signed by Reloader"),
                       systemImage: "checkmark.circle", tint: Aurora.sky)
         default:
             if let record {
@@ -306,7 +349,7 @@ struct InstallView: View {
 
     // MARK: - Your apps
 
-    /// Everything AltLoad signed, stores and IPAs, with a pill to refresh each one.
+    /// Everything Reloader signed, stores and IPAs, with a pill to refresh each one.
     private var yourApps: some View {
         VStack(spacing: 10) {
             SectionLabel(title: "Your Apps", trailing: "\(controller.apps.count)")
@@ -323,7 +366,7 @@ struct InstallView: View {
                         }
                     }
             }
-            Text("Long-press an app to stop AltLoad tracking it. Delete it from the Home Screen to uninstall.")
+            Text("Long-press an app to stop Reloader tracking it. Delete it from the Home Screen to uninstall.")
                 .font(.caption)
                 .foregroundStyle(Aurora.secondaryText)
                 .frame(maxWidth: .infinity, alignment: .leading)
@@ -379,7 +422,7 @@ struct InstallView: View {
                 StatusRow(
                     title: "LocalDevVPN",
                     detail: vpnActive ? String(localized: "Connected, reaching this iPhone at \(LocalDevVPN.targetIP)")
-                        : (LocalDevVPN.isInstalled ? String(localized: "Installed but off. AltLoad will ask you to turn it on") : String(localized: "Needed for installs. It's free on the App Store")),
+                        : (LocalDevVPN.isInstalled ? String(localized: "Off. Reloader will ask you to turn it on") : String(localized: "Needed for installs and refreshes. It's free on the App Store")),
                     state: vpnActive ? .done : .pending)
                 StatusRow(
                     title: "Apple ID",
@@ -415,7 +458,7 @@ struct InstallView: View {
             return record == nil ? String(localized: "Not installed yet") : String(localized: "Deleted from this iPhone. Install it again")
         }
         guard let record else {
-            return String(localized: "On this iPhone. Refresh once so AltLoad can keep it signed")
+            return String(localized: "On this iPhone. Refresh Profiles keeps it signed if iloader's certificate signed it")
         }
         return String(localized: "\(controller.installedVersion(store) ?? record.version), installed \(record.installedAt.formatted(.relative(presentation: .named)))")
     }

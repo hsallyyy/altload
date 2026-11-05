@@ -26,7 +26,7 @@ pub(super) fn prepare_app(ipa_path: &str, udid: &str, server_id: &str) -> Result
 
     // AltServer normally writes these. AltStore reads ALTDeviceID to know which
     // device it runs on. ALTServerID is the server it would look for to refresh.
-    // AltLoad does the refreshing, so that ID is simply AltLoad's own.
+    // This app does the refreshing, so that ID is simply its own.
     let info_path = app_dir.join("Info.plist");
     let mut info: plist::Dictionary =
         plist::from_file(&info_path).map_err(|e| err("Couldn't read Info.plist", e))?;
@@ -47,7 +47,8 @@ pub(super) fn bundle_id_of(app: &Path) -> String {
 }
 
 /// Enables `capabilities` (App Store Connect capability IDs) on the App ID that
-/// `sign_app` will use for this bundle, creating the App ID if it doesn't exist yet.
+/// `sign_with_main_profile` will use for this bundle, creating the App ID if it
+/// doesn't exist yet.
 /// Same JSON:API call isideload makes for INCREASED_MEMORY_LIMIT, one capability
 /// at a time so the error names the one Apple refused (paid-only ones fail on a
 /// free Apple ID).
@@ -61,7 +62,7 @@ pub(super) async fn enable_capabilities(
     if bundle_id.is_empty() {
         return Err("Couldn't read the app's bundle ID.".into());
     }
-    // sign_app registers the main app as <bundle id>.<team id>.
+    // The main app is registered as <bundle id>.<team id>.
     let identifier = format!("{bundle_id}.{}", team.team_id);
     let name = plist::from_file::<_, plist::Dictionary>(app.join("Info.plist"))
         .ok()
@@ -150,7 +151,8 @@ pub(super) async fn enable_capabilities(
 /// What isideload's `apply_special_app_behavior` writes for AltStore:
 /// ALTAppGroups (the group isideload registers, `group.<bundle id>.<team>`),
 /// ALTCertificateID and ALTCertificate.p12 (password: the certificate's machine ID).
-/// Runs before `sign_app`, which reads the bundle from disk, so it all gets signed.
+/// Runs before `sign_with_main_profile`, which reads the bundle from disk, so it all
+/// gets signed. `cert` is iloader's.
 pub(super) async fn inject_store_keys(app: &Path, bundle_id: &str, team_id: &str, cert: &CertificateIdentity) -> Result<(), String> {
     let info_path = app.join("Info.plist");
     let mut info: plist::Dictionary =

@@ -1,7 +1,7 @@
 import SwiftUI
 
 enum ToolRoute: Hashable {
-    case altServer, pair, pairingToApps, entitlements, appIDs, certificates, jit, location
+    case altServer, pair, pairingToApps, entitlements, appIDs, certificates, signingCertificate, jit, location
 }
 
 /// Lets other screens open a tool (e.g. "Go to Pair" from Install).
@@ -12,8 +12,8 @@ final class ToolsRouter: ObservableObject {
     private init() {}
 }
 
-/// One tab for everything that isn't installing: AltServer, JIT, location,
-/// pairing, pairing files for other apps, entitlements and the Apple ID's certificates.
+/// One tab for everything that isn't installing: AltServer, JIT, location, pairing,
+/// pairing files for other apps, entitlements, the signing key and the Apple ID's certificates.
 struct ToolsView: View {
     @ObservedObject private var router = ToolsRouter.shared
     @ObservedObject private var altServer = AltServerHost.shared
@@ -51,8 +51,12 @@ struct ToolsView: View {
 
                 VStack(spacing: 10) {
                     SectionLabel(title: "Signing & Account")
+                    toolRow(.signingCertificate, symbol: "key.fill", title: String(localized: "Signing Certificate"),
+                            detail: keyImported ? String(localized: "Imported · Reloader signs with iloader's certificate")
+                                : String(localized: "Import iloader's certificate. Needed to install apps"),
+                            tint: keyImported ? Aurora.success : Aurora.ember)
                     toolRow(.entitlements, symbol: "checkmark.shield.fill", title: String(localized: "Entitlements"),
-                            detail: entitlements.enabled.isEmpty ? String(localized: "Extra capabilities for apps AltLoad signs")
+                            detail: entitlements.enabled.isEmpty ? String(localized: "Extra capabilities for apps Reloader signs")
                                 : String(localized: "\(entitlements.enabled.count) on · added on the next install or refresh"))
                     toolRow(.appIDs, symbol: "app.badge", title: String(localized: "App IDs"),
                             detail: appIDsDetail)
@@ -71,12 +75,15 @@ struct ToolsView: View {
                 case .entitlements: EntitlementsView()
                 case .appIDs: AppIDsView()
                 case .certificates: CertificatesView()
+                case .signingCertificate: SigningCertificateView()
                 case .jit: JITView()
                 case .location: LocationView()
                 }
             }
         }
     }
+
+    private var keyImported: Bool { SigningKeyStore.hasKey(for: AppleIDStore.email) }
 
     private var altServerDetail: String {
         guard altServer.isRunning else { return String(localized: "Off. AltStore will say \"AltServer not found\"") }

@@ -6,7 +6,7 @@ use super::*;
 ///
 /// `request_json`:
 ///   {"op":"overview"}                          list certificates, App IDs, devices
-///   {"op":"revoke","serials":["ABC…", …]}      revoke those certificates, then list
+///   {"op":"revoke",…} is refused: this build never revokes a certificate.
 ///
 /// On success returns 0 and `*out_json` holds the overview JSON; on failure
 /// returns 1 and `*out_json` holds the error message. Free with
@@ -34,9 +34,9 @@ pub unsafe extern "C" fn altload_account_session_run(
         *out_json = cstr(msg);
         1
     };
-    let apple_id = match req(apple_id, "Apple ID") { Ok(v) => v, Err(e) => return fail(e) };
+    let apple_id = match req(apple_id, "Apple ID") { Ok(v) => v.trim().to_lowercase(), Err(e) => return fail(e) };
     let password = match req(password, "password") { Ok(v) => v, Err(e) => return fail(e) };
-    let anisette = opt(anisette_url, "https://ani.jkcoxson.com");
+    let anisette = opt(anisette_url, DEFAULT_ANISETTE);
     let request: serde_json::Value = serde_json::from_str(&opt(request_json, "{}"))
         .unwrap_or_else(|_| serde_json::json!({}));
 
@@ -86,6 +86,11 @@ pub(super) async fn run_account(
     replies: Replies,
     cancelled: &AtomicBool,
 ) -> Result<serde_json::Value, String> {
+    // Refused before signing in. Revoking iloader's certificate would stop the
+    // LiveContainer this app runs in, its JIT-less .p12 and every app signed with it.
+    if request.get("op").and_then(|v| v.as_str()) == Some("revoke") {
+        return Err("Reloader never revokes certificates. If one really has to go, revoke it with iloader on the PC.".to_string());
+    }
     let check = || if cancelled.load(Ordering::SeqCst) { Err("Cancelled.".to_string()) } else { Ok(()) };
 
     cbs.progress("Signing in to Apple…", -1.0);
@@ -101,24 +106,7 @@ pub(super) async fn run_account(
         .next()
         .ok_or("This Apple ID has no developer team.")?;
 
-    if request.get("op").and_then(|v| v.as_str()) == Some("revoke") {
-        let serials: Vec<String> = request
-            .get("serials")
-            .and_then(|v| v.as_array())
-            .map(|a| a.iter().filter_map(|s| s.as_str().map(str::to_string)).collect())
-            .unwrap_or_default();
-        let total = serials.len().max(1) as f64;
-        for (i, serial) in serials.iter().enumerate() {
-            check()?;
-            cbs.progress("Revoking certificate…", i as f64 / total);
-            dev.revoke_development_cert(&team, serial, None::<DeveloperDeviceType>)
-                .await
-                .map_err(|e| err("Couldn't revoke the certificate", e))?;
-        }
-    }
-
     check()?;
-    cbs.progress("Loading your account…", -1.0);
     account_overview(&mut dev, &team).await
 }
 

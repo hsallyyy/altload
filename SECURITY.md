@@ -1,68 +1,24 @@
-# Security Policy
+# Security
 
-AltLoad handles sensitive things: your Apple ID sign-in, a development certificate, and pairing files that grant access to your iPhone. Please report security problems privately so they can be fixed before they're public.
+Reloader is a personal build of AltLoad for its owner's own devices, based on AltLoad by mirazbakis – https://github.com/mirazbakis/AltLoad. It isn't distributed, so there are no releases to support and no one else to report to.
 
-## Supported versions
+- A problem in AltLoad's own code: report it privately to AltLoad through its [Security › Report a vulnerability](https://github.com/mirazbakis/AltLoad/security/advisories/new) page.
+- A problem in this build's changes (see [docs/PERSONAL-CHANGES.md](docs/PERSONAL-CHANGES.md)): fix it in this fork.
+- Problems in AltStore, LiveContainer, LocalDevVPN, idevice, isideload or an anisette server belong to those projects.
 
-| Version | Supported |
-|---|---|
-| Latest release and the `main` branch | ✅ |
-| Older releases | ❌ Please update first |
+## How this build handles your data
 
-## Reporting a vulnerability
+- **Apple ID password:** sent only to Apple's sign-in servers (GrandSlam SRP, so the password itself isn't transmitted). It's saved only with *Remember password* on, and then only in the iOS Keychain with `kSecAttrAccessibleWhenUnlockedThisDeviceOnly`: readable only while the device is unlocked, never synced or backed up.
+- **Apple session:** not kept. Every install and refresh signs in again.
+- **Anisette server:** receives device-identity data needed for the sign-in, never the password. Its identities are kept in `Application Support/AltLoad/anisette-mac27/<server>`; *Settings › Anisette › Reset Anisette Data* deletes them.
+- **iloader's private key:** imported once per Apple ID into `Application Support/AltLoad/iloader-key`, excluded from backups, and never sent anywhere, Apple included. Reloader signs only with the certificate iloader already made for that key and never creates, requests or revokes a certificate.
+- **Pairing files:** kept in the app's Documents folder. Anyone with a pairing file can connect to the device, so share them only with apps you trust.
+- **Connections to the device:** go through LocalDevVPN and an encrypted TLS-PSK tunnel that only a valid pairing file can open.
+- **Inside LiveContainer:** guests aren't sandboxed from each other, and all of them share LiveContainer's keychain groups. Another guest could read Reloader's files, the key included, and its saved password. Only run guests you trust next to it.
+- **No tracking:** no analytics or telemetry. Apple ID credentials, Apple's tokens and pairing data go to Apple and to this device only.
+- **CI:** the workflow's one secret, `IPA_PASSPHRASE`, encrypts the IPA artifact so that only you can use it. `.gitignore` keeps certificates, keys, provisioning profiles and pairing files out of the repository.
 
-**Please don't open a public issue for security problems.**
+## Tips
 
-1. Go to this repository's **[Security › Report a vulnerability](https://github.com/mirazbakis/AltLoad/security/advisories/new)** page. This creates a private report that only the maintainers can see.
-2. Include:
-   - what the problem is and where (file, screen or step),
-   - how to reproduce it,
-   - what an attacker could do with it,
-   - your AltLoad version or commit, iOS version and device.
-
-**What happens next:**
-
-- You'll get an acknowledgement within **7 days**.
-- We'll confirm the issue and agree on a fix and disclosure timeline with you. The aim is a fix within **90 days**, sooner for serious issues.
-- Once a fix is released, the advisory is published. You'll be credited unless you'd rather not be.
-
-## Scope
-
-**In scope:** code in this repository, including:
-
-- handling of Apple ID credentials and 2FA (`ios/App/Core/Account/AppleIDStore.swift`, `ios/App/Features/Install/InstallSheets.swift`, `core/src/install/sign_in.rs`),
-- storage and handling of pairing files, certificates and private keys,
-- the tunnel to the device and the install pipeline,
-- how AltLoad talks to anisette servers, the AltStore source and LocalDevVPN,
-- the build workflow in `.github/workflows/`.
-
-**Out of scope** (please report these to the right project):
-
-- [AltStore](https://github.com/altstoreio/AltStore)
-- [LocalDevVPN](https://github.com/jkcoxson/LocalDevVPN)
-- [idevice](https://github.com/jkcoxson/idevice) and [isideload](https://github.com/nab138/isideload), unless the problem is in how AltLoad uses them
-- anisette servers run by third parties
-- Apple's services and iOS itself
-- problems that need an already-jailbroken or already-compromised device
-
-## Safe harbor
-
-We won't pursue or support legal action against anyone who researches and reports in good faith: someone who follows this policy, avoids privacy violations, data destruction and service disruption, only tests with their own devices and accounts, and gives us reasonable time to fix the problem before disclosing it.
-
-## How AltLoad protects your data
-
-- **Apple ID password:** sent only to Apple's sign-in servers (GrandSlam, using the SRP protocol, so the password itself isn't transmitted). It's saved only if you turn on *Remember password*, and then only in the iOS Keychain with `kSecAttrAccessibleWhenUnlockedThisDeviceOnly`: readable only while unlocked, and never synced or backed up to other devices.
-- **Apple developer token:** saved after a sign-in in AltLoad's private app storage, whether or not the password is saved, so later installs don't have to sign in again. It's never sent anywhere but Apple. Signing out deletes it.
-- **Anisette server:** receives device-identity data needed for Apple sign-in, **never** your password. You can choose the server or run your own.
-- **Development certificate and key:** stored in the Keychain.
-- **Pairing files:** stored in the app's Documents folder. Anyone with a pairing file can connect to your device, so share them only with apps you trust.
-- **Connections to the device:** go through an encrypted TLS-PSK tunnel that only a valid pairing file can open.
-- **No tracking:** AltLoad has no analytics or telemetry and doesn't send data to the AltLoad developers.
-- **Repository:** `.gitignore` blocks certificates, keys, provisioning profiles, `.env` files and pairing files from being committed. CI builds are unsigned and use no secrets.
-
-## Tips for users
-
-- Download AltLoad only from this repository's [Releases](https://github.com/mirazbakis/AltLoad/releases) or [Actions](https://github.com/mirazbakis/AltLoad/actions), or build it yourself.
-- Consider using a secondary Apple ID for sideloading.
-- Never share your pairing files, `.p12` certificates or Apple ID password.
+- Never share your pairing files, `.p12` files or Apple ID password, and never revoke iloader's certificate.
 - Turn LocalDevVPN off when you're not installing or refreshing.

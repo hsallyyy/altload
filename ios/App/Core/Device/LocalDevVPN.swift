@@ -4,7 +4,7 @@ import UIKit
 
 /// LocalDevVPN (App Store, by jkcoxson / Stossy11) is a loopback VPN. It routes
 /// 10.7.0.1 into a tunnel whose provider swaps each packet's source and
-/// destination addresses and writes it straight back. A connection AltLoad opens
+/// destination addresses and writes it straight back. A connection Reloader opens
 /// to 10.7.0.1 therefore arrives at this iPhone's own services as if it came from
 /// another machine, which is what remotepairingd needs. No computer is involved.
 enum LocalDevVPN {
@@ -13,8 +13,13 @@ enum LocalDevVPN {
     /// remotepairingd's RemotePairing port (the same one StikDebug uses).
     static let remotePairingPort = 49152
 
-    /// Opens LocalDevVPN, turns the VPN on and comes back to AltLoad via `altload://`.
-    static let enableURL = URL(string: "localdevvpn://enable?scheme=altload")!
+    /// Opens LocalDevVPN, turns the VPN on and comes back through `scheme`. A guest's
+    /// own scheme isn't registered with iOS, so inside LiveContainer it's LiveContainer's,
+    /// which only brings LiveContainer to the front; Reloader carries on from there.
+    static var enableURL: URL {
+        let scheme = Hosting.urlScheme ?? AltLoadApp.urlScheme
+        return URL(string: "localdevvpn://enable?scheme=\(scheme)")!
+    }
 
     static var targetIP: String {
         get {
@@ -32,9 +37,12 @@ enum LocalDevVPN {
         }
     }
 
+    /// Inside LiveContainer iOS can't say: canOpenURL only answers for schemes the host
+    /// app lists, and LiveContainer doesn't list localdevvpn. Then assume it's there and
+    /// let turnOn() fall back to the App Store.
     @MainActor
     static var isInstalled: Bool {
-        UIApplication.shared.canOpenURL(URL(string: "localdevvpn://")!)
+        Hosting.isHosted || UIApplication.shared.canOpenURL(URL(string: "localdevvpn://")!)
     }
 
     /// True when a VPN interface (utun*) holds an address in the same /16 as the
@@ -64,9 +72,13 @@ enum LocalDevVPN {
         return false
     }
 
-    /// Turns the VPN on if LocalDevVPN is installed; otherwise opens its App Store page.
+    /// Asks LocalDevVPN to turn the VPN on. Only when iOS can't open it (it isn't
+    /// installed) does this go to its App Store page instead.
     @MainActor
     static func turnOn() {
-        UIApplication.shared.open(isInstalled ? enableURL : appStoreURL)
+        Task {
+            let opened = await UIApplication.shared.open(enableURL)
+            if !opened { _ = await UIApplication.shared.open(appStoreURL) }
+        }
     }
 }

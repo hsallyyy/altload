@@ -2,7 +2,7 @@
 
 use super::*;
 
-/// isideload's state (the anisette identity and the signing certificate) kept as
+/// isideload's state (the anisette identity) and the imported iloader key, kept as
 /// files in Application Support/AltLoad. The Keychain used before fails with
 /// errSecMissingEntitlement when AltLoad is sideloaded by signers that drop the
 /// keychain-access-groups entitlement, and then sign-in can't save its

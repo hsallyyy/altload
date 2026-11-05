@@ -2,6 +2,27 @@
 
 This document describes each stage of the install, with the protocol, the library, and the file in this repo that does the work.
 
+## What this personal build changes
+
+This copy is **Reloader**, a personal build based on AltLoad by mirazbakis. The rest of this document describes upstream AltLoad. Where the two disagree, this section is right.
+
+- **Name and IDs.** The app is called Reloader, with the bundle ID `com.haris.reloader` (widget `com.haris.reloader.widgets`) and the URL scheme `reloader://`, so it never presents itself as AltLoad or uses the reserved `com.mirazbakis` prefix (LICENSE.md §6).
+- **One certificate, never a new one.** Reloader signs only with the development certificate iloader already made on the PC. Its private key is imported once (`altload_import_signing_key`, from iloader's `.p12` or a raw RSA key), and the certificate is found on the Apple account by that key's public key. Nothing creates, requests or revokes a certificate: the `kind: 2` revoke prompt in step 4 is never sent, and the account manager refuses `{"op":"revoke"}`. If iloader's certificate is gone, Reloader stops and says so.
+- **Profile-only refresh.** `altload_refresh_profiles_run` renews the 7-day profiles of installed apps signed with that certificate, the host LiveContainer and its extensions first, and installs them with misagent. Nothing is re-signed or reinstalled. Each new profile goes on before older copies come off, so the host is never left without a valid one. Free App IDs expire weekly, so a missing or expired App ID is registered again, with its app groups (including `group.com.SideStore.SideStore.<TEAMID>`) and Increased Memory Limit. A dry run registers no App IDs and installs nothing; it reports what a refresh would do.
+- **AltServer.** Off by default, and without the Wi-Fi listener inside LiveContainer, whose Bonjour list has no `_altserver._tcp`. AltStore's profile juggling never removes the profiles of LiveContainer, of Reloader or of their extensions, and `remove_app` refuses those apps.
+- **Sign-in like iloader 2.4.1.** isideload 0.5.2 with iloader's macOS 27 client-info override, and the Mac-ADI anisette server `https://mac-ani.jkcoxson.com` by default.
+- **No distribution.** The update checker, install site, DNS profile, AltStore source, signing packs and release/OTA workflows are gone. Nothing sends Apple ID credentials, tokens or pairing data anywhere but Apple. The one CI workflow builds an IPA for your own devices and never publishes it; see [PERSONAL-SETUP.md](PERSONAL-SETUP.md).
+
+```c
+// core/include/altload.h, added for this build
+int32_t altload_import_signing_key(const char *apple_id, const uint8_t *data, size_t len,
+                                   const char *password, char **out_json); // offline
+int32_t altload_has_signing_key(const char *apple_id);                     // 1 or 0
+int32_t altload_refresh_profiles_run(AltLoadInstallSession *session, const AltLoadInstallConfig *config,
+                                     const char *request_json, AltLoadProgressCb progress_cb,
+                                     AltLoadPromptCb prompt_cb, void *ctx, char **out_json); // blocking
+```
+
 ## Components
 
 | Layer | What | Where |
@@ -94,10 +115,6 @@ Afterwards AltLoad reads `CFBundleIdentifier`, the version, `TeamIdentifier` and
 ## Refreshing
 
 A free-account profile lasts 7 days. AltStore's built-in refresh expects to find AltServer on the network, which doesn't exist in this setup. Tapping **Refresh AltStore** in AltLoad runs the same pipeline with the cached IPA. Because the bundle ID and team are the same, iOS treats it as an update, and AltStore's data and the apps it manages are kept.
-
-## Update notice
-
-`UpdateChecker` asks GitHub for AltLoad's latest release when the app opens or returns to the foreground, at most every 6 hours. If it's newer than the running version, an alert links to the install site. **Later** hides that version until a newer one is out.
 
 ## FFI surface
 

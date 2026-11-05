@@ -1,10 +1,13 @@
 import Foundation
 
-/// Public anisette v3 servers. AltLoad ships a built-in list and refreshes it
+/// Public anisette v3 servers. Reloader ships a built-in list and refreshes it
 /// from SideStore's community list (https://servers.sidestore.io/servers.json).
 struct AnisetteServer: Codable, Hashable, Identifiable {
     let name: String
     let address: String
+    /// servers.json "kind": 2 for Mac-ADI servers (mac-ani.jkcoxson.com,
+    /// new.ani.sidestore.io), 1 for Windows-ADI ones. nil for the built-in entries.
+    var kind: Int? = nil
     var id: String { address }
 }
 
@@ -14,24 +17,21 @@ final class AnisetteServers: ObservableObject {
 
     static let listURL = URL(string: "https://servers.sidestore.io/servers.json")!
 
-    /// Stored as the anisette choice when AltLoad should pick a working server itself.
+    /// Stored as the anisette choice when Reloader should pick a working server itself.
     static let automatic = "auto"
 
-    /// Used when the live list can't be fetched. Since Apple started refusing most
-    /// remote anisette on 12 October 2026, the Windows-ADI servers are the ones that
-    /// still sign in, so they come first. jkcoxson's macOS-ADI server is next: when it's
-    /// down, Automatic's health check skips it and the PC sign-in carries on as before.
+    /// iloader 2.4.1's default server. Profile refreshes use it whenever the choice is
+    /// Automatic, so Apple keeps seeing the same anisette identity week after week.
+    static let iloaderDefault = "https://mac-ani.jkcoxson.com"
+
+    /// iloader 2.4.1's list (src/pages/Settings.tsx), in its order: Mac-ADI servers only.
+    /// iloader leaves the Windows-ADI ones out because they "work ~50% of the time, and
+    /// don't work with SMS 2FA". The Rust core sends the macOS 27 client info to all of them.
     static let builtIn: [AnisetteServer] = [
-        AnisetteServer(name: "jkcoxson (Windows ADI)", address: "https://ani.jkcoxson.com"),
-        AnisetteServer(name: "jkcoxson (Mac ADI)", address: "https://mac-ani.jkcoxson.com"),
-        AnisetteServer(name: "SideStore (Windows ADI)", address: "https://win.ani.sidestore.io"),
-        AnisetteServer(name: "SideStore", address: "https://ani.sidestore.io"),
-        AnisetteServer(name: "SideStore (.app)", address: "https://ani.sidestore.app"),
-        AnisetteServer(name: "SideStore (.zip)", address: "https://ani.sidestore.zip"),
-        AnisetteServer(name: "SideStore (.xyz)", address: "https://ani.846969.xyz"),
-        AnisetteServer(name: "nythepegasus", address: "https://ani.npeg.us"),
-        AnisetteServer(name: "WE. Studio", address: "https://anisette.wedotstud.io"),
-        AnisetteServer(name: "crystall1nedev", address: "https://anisette.crystall1ne.dev")
+        AnisetteServer(name: "jkcoxson", address: iloaderDefault),
+        AnisetteServer(name: "iloader", address: "https://ani.iloader.app"),
+        AnisetteServer(name: "SideStore (.io)", address: "https://new.ani.sidestore.io"),
+        AnisetteServer(name: "StikStore", address: "https://ani3.stikstore.app")
     ]
 
     @Published private(set) var servers: [AnisetteServer] = AnisetteServers.builtIn
@@ -41,7 +41,8 @@ final class AnisetteServers: ObservableObject {
         let servers: [AnisetteServer]
     }
 
-    /// Merges the live list into the built-in one. HTTPS only, since sign-in headers pass through it.
+    /// Merges the live list into the built-in one. HTTPS only, since sign-in headers pass
+    /// through it, and Mac-ADI only, for the same reason the built-in list is.
     func refresh() async {
         guard !isLoading else { return }
         isLoading = true
@@ -49,7 +50,7 @@ final class AnisetteServers: ObservableObject {
         do {
             let (data, _) = try await URLSession.shared.data(from: Self.listURL)
             let live = try JSONDecoder().decode(Listing.self, from: data).servers
-                .filter { $0.address.lowercased().hasPrefix("https://") }
+                .filter { $0.address.lowercased().hasPrefix("https://") && $0.kind == 2 }
             var merged = Self.builtIn
             for server in live where !merged.contains(where: { $0.address == server.address }) {
                 merged.append(server)
@@ -91,6 +92,15 @@ final class AnisetteServers: ObservableObject {
         return picked.prefix(4).joined(separator: "\n")
     }
 
+    /// The one server a profile refresh signs in with: the one picked in Settings, or
+    /// iloader's default when that's Automatic. Never a rotation: each server is its own
+    /// anisette identity, and a new one tends to bring two-factor back, which an
+    /// unattended weekly run can't answer.
+    static func refreshServer(preferred: String) -> String {
+        let chosen = preferred.trimmingCharacters(in: .whitespacesAndNewlines)
+        return chosen.isEmpty || chosen == automatic ? iloaderDefault : chosen
+    }
+
     /// Quick check that a v3 server answers with its client info.
     nonisolated static func isAlive(_ address: String) async -> Bool {
         guard let url = URL(string: address.trimmingCharacters(in: .whitespaces) + "/v3/client_info") else { return false }
@@ -101,11 +111,14 @@ final class AnisetteServers: ObservableObject {
         return json["client_info"] is String
     }
 
-    /// Removes the anisette identities AltLoad provisioned, so the next sign-in
+    /// Removes the anisette identities Reloader provisioned, so the next sign-in
     /// starts clean. Useful after Apple rejects one.
     nonisolated static func resetProvisioning() {
-        let dir = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
-            .appendingPathComponent("AltLoad/anisette", isDirectory: true)
-        try? FileManager.default.removeItem(at: dir)
+        let support = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
+        // The core keeps the identities made with the macOS 27 client info in
+        // anisette-mac27/<server>; anisette/ is where older builds kept theirs.
+        for folder in ["AltLoad/anisette-mac27", "AltLoad/anisette"] {
+            try? FileManager.default.removeItem(at: support.appendingPathComponent(folder, isDirectory: true))
+        }
     }
 }

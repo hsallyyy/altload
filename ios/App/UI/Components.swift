@@ -1,6 +1,6 @@
 import SwiftUI
 
-// AltLoad's own components: solid midnight surfaces with a hairline edge, and
+// Reloader's own components (from AltLoad): solid midnight surfaces with a hairline edge, and
 // Liquid Glass buttons on top of them. Icons stand on their own, without tiles.
 // The old "Glass" names stay so every screen picks the new look up.
 
@@ -586,9 +586,9 @@ struct GlassChip: View {
     }
 }
 
-/// AltLoad's logo drawn in SwiftUI: a white arrow into a tray, inside an orbit, with
-/// sparkles, on midnight fading into dark green.
-/// Matches the app icon (ios/App/Resources/AltLoad.icon) and docs/assets/logo.svg.
+/// Reloader's logo drawn in SwiftUI: two white arrows chasing each other round a circle,
+/// on violet fading into amber. Matches the app icon (ios/App/Resources/AltLoad.icon,
+/// Assets/Cycle.svg).
 struct AltLoadMark: View {
     var size: CGFloat = 88
 
@@ -596,84 +596,65 @@ struct AltLoadMark: View {
         ZStack {
             RoundedRectangle(cornerRadius: size * 0.225, style: .continuous)
                 .fill(Aurora.markGradient)
-            RadialGradient(colors: [Color(red: 0.25, green: 0.75, blue: 0.52).opacity(0.32), .clear],
-                           center: .init(x: 0.5, y: 0.47), startRadius: 0, endRadius: size * 0.42)
+            RadialGradient(colors: [Color.white.opacity(0.16), .clear],
+                           center: .init(x: 0.5, y: 0.45), startRadius: 0, endRadius: size * 0.45)
 
-            Circle()
-                .stroke(Color.white.opacity(0.22), lineWidth: size * 0.027)
-                .frame(width: size * 0.66, height: size * 0.66)
-                .offset(y: -size * 0.012)
-
-            MarkShape(kind: .arrow)
+            MarkShape()
                 .fill(Color.white)
-                .frame(width: size * 0.293, height: size * 0.332)
-                .offset(y: -size * 0.117)
-
-            MarkShape(kind: .tray)
-                .fill(Color.white)
-                .frame(width: size * 0.449, height: size * 0.176)
-                .offset(y: size * 0.158)
-
-            MarkShape(kind: .sparkle)
-                .fill(Color.white)
-                .frame(width: size * 0.137, height: size * 0.137)
-                .offset(x: size * 0.252, y: -size * 0.26)
-
-            MarkShape(kind: .sparkle)
-                .fill(Color.white.opacity(0.8))
-                .frame(width: size * 0.062, height: size * 0.062)
-                .offset(x: -size * 0.239, y: size * 0.205)
+                .frame(width: size * 0.6, height: size * 0.6)
 
             LinearGradient(colors: [.white.opacity(0.14), .clear], startPoint: .top, endPoint: .center)
         }
         .frame(width: size, height: size)
         .clipShape(.rect(cornerRadius: size * 0.225, style: .continuous))
-        .shadow(color: Aurora.forest.opacity(0.45), radius: size * 0.2, y: size * 0.06)
-        .accessibilityLabel("AltLoad")
+        .shadow(color: Aurora.markGlow.opacity(0.45), radius: size * 0.2, y: size * 0.06)
+        .accessibilityLabel("Reloader")
     }
 }
 
-/// The logo's glyphs, traced from the icon SVGs and scaled to any frame.
+/// The icon's glyph, with the same geometry as Cycle.svg (a 620 × 620 design space),
+/// scaled to any frame. Arcs are drawn as short lines, which is plenty at logo sizes and
+/// sidesteps which way "clockwise" turns in a flipped coordinate space.
 private struct MarkShape: Shape {
-    enum Kind { case arrow, tray, sparkle }
-    let kind: Kind
-
     func path(in rect: CGRect) -> Path {
+        let scale = min(rect.width, rect.height) / 620
+        let center = CGPoint(x: rect.midX, y: rect.midY)
+        func point(_ degrees: CGFloat, _ radius: CGFloat) -> CGPoint {
+            let angle = degrees * .pi / 180
+            return CGPoint(x: center.x + radius * scale * cos(angle), y: center.y + radius * scale * sin(angle))
+        }
+        func arc(_ path: inout Path, from start: CGFloat, to end: CGFloat, radius: CGFloat) {
+            let steps = max(1, Int(abs(end - start) / 3))
+            for step in 1...steps {
+                path.addLine(to: point(start + (end - start) * CGFloat(step) / CGFloat(steps), radius))
+            }
+        }
+
+        // Ring centre line and thickness; each arrow runs 150 degrees, its head the last 30.
+        let ring: CGFloat = 214, width: CGFloat = 72
         var p = Path()
-        switch kind {
-        case .arrow:
-            // 300 × 340 design space.
-            let sx = rect.width / 300, sy = rect.height / 340
-            func pt(_ x: CGFloat, _ y: CGFloat) -> CGPoint { CGPoint(x: rect.minX + x * sx, y: rect.minY + y * sy) }
-            let w: CGFloat = 60
-            p.addRoundedRect(in: CGRect(origin: pt(150 - w / 2, 0), size: CGSize(width: w * sx, height: 250 * sy)),
-                             cornerSize: CGSize(width: 30 * sx, height: 30 * sy))
-            var head = Path()
-            head.move(to: pt(40, 180))
-            head.addLine(to: pt(150, 290))
-            head.addLine(to: pt(260, 180))
-            p.addPath(head.strokedPath(StrokeStyle(lineWidth: w * sx, lineCap: .round, lineJoin: .round)))
-        case .tray:
-            // 460 × 180 design space.
-            let sx = rect.width / 460, sy = rect.height / 180
-            func pt(_ x: CGFloat, _ y: CGFloat) -> CGPoint { CGPoint(x: rect.minX + x * sx, y: rect.minY + y * sy) }
-            var u = Path()
-            u.move(to: pt(30, 30))
-            u.addLine(to: pt(30, 100))
-            u.addQuadCurve(to: pt(80, 150), control: pt(30, 150))
-            u.addLine(to: pt(380, 150))
-            u.addQuadCurve(to: pt(430, 100), control: pt(430, 150))
-            u.addLine(to: pt(430, 30))
-            p.addPath(u.strokedPath(StrokeStyle(lineWidth: 60 * sx, lineCap: .round, lineJoin: .round)))
-        case .sparkle:
-            let c = CGPoint(x: rect.midX, y: rect.midY)
-            let r = min(rect.width, rect.height) / 2
-            let k = r * 0.14
-            p.move(to: CGPoint(x: c.x, y: c.y - r))
-            p.addQuadCurve(to: CGPoint(x: c.x + r, y: c.y), control: CGPoint(x: c.x + k, y: c.y - k))
-            p.addQuadCurve(to: CGPoint(x: c.x, y: c.y + r), control: CGPoint(x: c.x + k, y: c.y + k))
-            p.addQuadCurve(to: CGPoint(x: c.x - r, y: c.y), control: CGPoint(x: c.x - k, y: c.y + k))
-            p.addQuadCurve(to: CGPoint(x: c.x, y: c.y - r), control: CGPoint(x: c.x - k, y: c.y - k))
+        for start in [200, 20] as [CGFloat] {
+            let head = start + 120, tip = start + 150
+            p.move(to: point(start, ring + width / 2))
+            arc(&p, from: start, to: head, radius: ring + width / 2)
+            p.addLine(to: point(head, ring + width))
+            p.addLine(to: point(tip, ring))
+            p.addLine(to: point(head, ring - width))
+            p.addLine(to: point(head, ring - width / 2))
+            arc(&p, from: head, to: start, radius: ring - width / 2)
+            // A round tail: half a circle behind the start, from the inner edge to the outer.
+            let tail = point(start, ring)
+            let angle = start * .pi / 180
+            let radial = CGVector(dx: cos(angle), dy: sin(angle))
+            let forward = CGVector(dx: -sin(angle), dy: cos(angle))
+            let r = width / 2 * scale
+            for step in 1...12 {
+                let t = CGFloat(step) / 12 * .pi
+                let back: CGFloat = -cos(t), behind: CGFloat = -sin(t)
+                let dx = back * radial.dx + behind * forward.dx
+                let dy = back * radial.dy + behind * forward.dy
+                p.addLine(to: CGPoint(x: tail.x + r * dx, y: tail.y + r * dy))
+            }
             p.closeSubpath()
         }
         return p

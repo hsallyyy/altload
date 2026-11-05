@@ -2,8 +2,8 @@ import AVFAudio
 import CoreLocation
 import Foundation
 
-/// Keeps AltLoad running for the short while the user is in Settings tapping
-/// "Pair with AltLoad". Two independent mechanisms:
+/// Keeps Reloader running for the short while the user is in Settings tapping
+/// "Pair with Reloader", and through a profile refresh. Two independent mechanisms:
 ///   - silent audio: a near-inaudible tone on a playback session, which iOS
 ///     treats as active output and keeps scheduled;
 ///   - location: background location updates.

@@ -1,6 +1,6 @@
 import Foundation
 
-/// A pairing file AltLoad created (or imported) and kept on disk.
+/// A pairing file Reloader created (or imported) and kept on disk.
 struct SavedPairing: Codable, Identifiable, Hashable {
     let name: String
     let model: String
@@ -73,19 +73,20 @@ final class PairingStore: ObservableObject {
         return item
     }
 
-    /// Adds a pairing file made elsewhere (e.g. by StikPair or on a computer).
-    func importFile(at url: URL) throws -> SavedPairing {
+    /// Adds a pairing file made elsewhere (e.g. by StikPair or on a computer). `name`
+    /// replaces the one taken from the file name.
+    func importFile(at url: URL, name: String? = nil) throws -> SavedPairing {
         let scoped = url.startAccessingSecurityScopedResource()
         defer { if scoped { url.stopAccessingSecurityScopedResource() } }
         let base = url.deletingPathExtension().lastPathComponent
-        let name = base == "rp_pairing_file" ? String(localized: "Imported") : base
-        return try store(fileAt: url, move: false, name: name, model: "", udid: "")
+        let fileName = base == "rp_pairing_file" ? String(localized: "Imported") : base
+        return try store(fileAt: url, move: false, name: name ?? fileName, model: "", udid: "")
     }
 
     /// Imports a pairing file for *this* iPhone and uses it for installs. This is
-    /// how pairing works below iOS 27, where the iPhone can't pair with AltLoad itself.
-    func importForThisDevice(at url: URL) throws -> SavedPairing {
-        let item = try importFile(at: url)
+    /// how pairing works below iOS 27, where the iPhone can't pair with Reloader itself.
+    func importForThisDevice(at url: URL, name: String? = nil) throws -> SavedPairing {
+        let item = try importFile(at: url, name: name)
         selfPairingID = item.id
         return item
     }

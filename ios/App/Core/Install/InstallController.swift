@@ -92,7 +92,7 @@ enum DevicePresence: Equatable {
     case missing
 }
 
-/// An app AltLoad signed and installed.
+/// An app Reloader signed and installed.
 struct InstalledApp: Codable, Equatable, Identifiable {
     let bundleID: String
     let name: String
@@ -126,10 +126,10 @@ struct InstalledApp: Codable, Equatable, Identifiable {
     }
 }
 
-/// What happens to an app's extensions when it's signed. Same choices as SideStore.
+/// What happens to an app's extensions when it's signed. The core signs every extension
+/// it keeps with the main app's profile, as iloader 2.4.1 does, so separate App IDs per
+/// extension aren't a choice any more.
 enum ExtensionsMode: Int, CaseIterable, Identifiable {
-    /// Each extension gets its own App ID. A free Apple ID only has 10 a week.
-    case keep = 0
     /// Extensions are signed with the main app's profile, so only one App ID is used.
     case mainProfile = 1
     /// Extensions are taken out before signing.
@@ -139,30 +139,28 @@ enum ExtensionsMode: Int, CaseIterable, Identifiable {
 
     static let defaultsKey = "install.extensionsMode"
 
+    /// Upstream's "Keep Extensions" (0) signs the same way as `mainProfile` now.
     static var saved: ExtensionsMode {
-        ExtensionsMode(rawValue: UserDefaults.standard.integer(forKey: defaultsKey)) ?? .keep
+        ExtensionsMode(rawValue: UserDefaults.standard.integer(forKey: defaultsKey)) ?? .mainProfile
     }
 
     var title: String {
         switch self {
-        case .keep: String(localized: "Keep Extensions")
-        case .mainProfile: String(localized: "Keep, Use Main Profile")
+        case .mainProfile: String(localized: "Keep Extensions")
         case .remove: String(localized: "Remove Extensions")
         }
     }
 
     var detail: String {
         switch self {
-        case .keep: String(localized: "Widgets and other extensions get their own App IDs.")
         case .mainProfile: String(localized: "Extensions share the app's profile, so only one App ID is used. Some may not run.")
-        case .remove: String(localized: "Widgets and other extensions are left out. Saves App IDs.")
+        case .remove: String(localized: "Widgets and other extensions are left out.")
         }
     }
 
     var symbol: String {
         switch self {
-        case .keep: "puzzlepiece.extension.fill"
-        case .mainProfile: "person.crop.rectangle.stack"
+        case .mainProfile: "puzzlepiece.extension.fill"
         case .remove: "puzzlepiece.extension"
         }
     }
@@ -180,18 +178,6 @@ struct TwoFactorPrompt: Identifiable, Equatable {
     let lastError: String?
     let numbers: [TrustedNumber]
     let selectedNumberID: Int?
-}
-
-struct RevokePrompt: Identifiable, Equatable {
-    struct Certificate: Identifiable, Equatable, Decodable {
-        let serial: String
-        let name: String
-        let machine: String
-        var id: String { serial }
-    }
-
-    let id = UUID()
-    let certificates: [Certificate]
 }
 
 /// Drives on-device installs: fetch → download → check LocalDevVPN →
@@ -216,10 +202,9 @@ final class InstallController: ObservableObject {
     @Published var flow: InstallTarget?
     @Published private(set) var releases: [StoreApp: StoreRelease] = [:]
     @Published private(set) var catalogErrors: [StoreApp: String] = [:]
-    /// Everything AltLoad installed, newest first.
+    /// Everything Reloader installed, newest first.
     @Published private(set) var apps: [InstalledApp] = []
     @Published var twoFactor: TwoFactorPrompt?
-    @Published var revoke: RevokePrompt?
     /// Where the install is, for the progress bar.
     @Published private(set) var step: InstallStep = .download
     /// Progress inside `step`, when known.
@@ -236,7 +221,7 @@ final class InstallController: ObservableObject {
         didSet { UserDefaults.standard.set(anisetteURL, forKey: "anisette.url") }
     }
 
-    /// AltLoad picks a working server itself unless the user chose one.
+    /// Reloader picks a working server itself unless the user chose one.
     static let defaultAnisette = AnisetteServers.automatic
 
     /// The saved choice. Anyone still on an old fixed default (SideStore's server, then
@@ -279,7 +264,7 @@ final class InstallController: ObservableObject {
         }
     }
 
-    /// Stable ID written into the store app as ALTServerID. AltLoad's AltServer
+    /// Stable ID written into the store app as ALTServerID. Reloader's AltServer
     /// advertises the same ID, so AltStore treats it as its own server.
     nonisolated static var serverID: String {
         if let id = UserDefaults.standard.string(forKey: "altload.serverID") { return id }
@@ -307,14 +292,14 @@ final class InstallController: ObservableObject {
         }
     }
 
-    /// AltLoad's own record of installing `store`. It can be stale: the app may have
+    /// Reloader's own record of installing `store`. It can be stale: the app may have
     /// been deleted since, or installed some other way. See `isOnDevice`.
     func installed(_ store: StoreApp) -> InstalledApp? {
         apps.first { $0.store == store.base }
     }
 
     /// Whether `store` is on this iPhone: the device check when there is one,
-    /// otherwise AltLoad's record.
+    /// otherwise Reloader's record.
     func isOnDevice(_ store: StoreApp) -> Bool {
         switch presence[store.base] {
         case .installed: true
@@ -376,6 +361,19 @@ final class InstallController: ObservableObject {
         UNUserNotificationCenter.current().removePendingNotificationRequests(withIdentifiers: [reminderID(app)])
     }
 
+    /// A profile refresh moved this app's expiry: keep the record and its reminder in step.
+    /// Apps Reloader didn't install (LiveContainer from iloader, for one) aren't listed.
+    func recordProfileRefresh(bundleID: String, expiration: Date) {
+        guard let index = apps.firstIndex(where: { $0.bundleID == bundleID }) else { return }
+        let old = apps[index]
+        let updated = InstalledApp(
+            bundleID: old.bundleID, name: old.name, version: old.version, teamID: old.teamID,
+            expiration: expiration, installedAt: old.installedAt, ipaFile: old.ipaFile, channel: old.channel)
+        apps[index] = updated
+        save()
+        scheduleExpiryReminder(for: updated)
+    }
+
     private func save() {
         if let data = try? JSONEncoder().encode(apps) {
             UserDefaults.standard.set(data, forKey: appsKey)
@@ -386,7 +384,7 @@ final class InstallController: ObservableObject {
 
     /// Opens the full-screen install flow for `target`.
     func begin(_ target: InstallTarget) {
-        guard !isBusy else { return }
+        guard !isBusy, !ProfileRefresher.shared.isBusy else { return }
         pending = nil
         phase = .idle
         pairingNote = nil
@@ -460,7 +458,7 @@ final class InstallController: ObservableObject {
     }
 
     /// Continue an install parked at `.needsVPN`, e.g. when LocalDevVPN sends
-    /// the user back via `altload://`.
+    /// the user back via `reloader://`.
     func resumeAfterVPN(skipCheck: Bool = false) {
         guard case .needsVPN = phase, let pending else { return }
         self.pending = nil
@@ -469,20 +467,38 @@ final class InstallController: ObservableObject {
 
     func respond(_ response: String) {
         twoFactor = nil
-        revoke = nil
         guard let session else { return }
         _ = response.withCString { altload_install_session_respond(session, $0) }
     }
 
     func cancel() {
         twoFactor = nil
-        revoke = nil
         if let session { altload_install_session_cancel(session) }
     }
 
+    /// Reinstalling the LiveContainer Reloader runs in would end Reloader halfway through.
+    private static var hostReinstallMessage: String {
+        String(localized: "This would reinstall \(Hosting.hostName), the app Reloader is running in, which closes Reloader halfway through. Renew it with Refresh Profiles on the Install tab instead, or update it with iloader on your PC.")
+    }
+
     private func run(_ credentials: AppleIDCredentials, target: InstallTarget, ipaOverride: URL? = nil, skipVPNCheck: Bool = false) async {
+        guard !ProfileRefresher.shared.isBusy else {
+            phase = .failed(String(localized: "Reloader is refreshing app profiles. Try again when that's done."))
+            return
+        }
         guard let pairing = PairingStore.shared.selfPairing else {
             phase = .failed(String(localized: "There's no pairing file for this iPhone yet. Create one in Tools › Pair first."))
+            return
+        }
+        // Signing uses only the certificate iloader made, found on the account by the
+        // imported key. Without the key there's nothing to sign with, so stop before
+        // signing in to Apple.
+        guard SigningKeyStore.hasKey(for: credentials.email) else {
+            phase = .failed(String(localized: "Import your signing certificate first, in Tools › Signing Certificate. Reloader signs only with the certificate iloader made on your PC and never creates one."))
+            return
+        }
+        if let store = target.store, Hosting.wouldReplaceHost(store.bundleIdentifier) {
+            phase = .failed(Self.hostReinstallMessage)
             return
         }
 
@@ -526,6 +542,19 @@ final class InstallController: ObservableObject {
             }
         }
 
+        // Inside LiveContainer, an IPA whose bundle ID can't be read might be LiveContainer
+        // itself, so it isn't installed from here.
+        if Hosting.isHosted {
+            guard let bundleID = IPAInfo.bundleIdentifier(of: ipa) else {
+                phase = .failed(String(localized: "Reloader couldn't read this IPA's bundle ID, so it can't tell whether it would replace \(Hosting.hostName), the app Reloader is running in. Install it with iloader on your PC instead."))
+                return
+            }
+            if Hosting.wouldReplaceHost(bundleID) {
+                phase = .failed(Self.hostReinstallMessage)
+                return
+            }
+        }
+
         // 2. LocalDevVPN has to be on so 10.7.0.1 loops back into this iPhone.
         enter(.vpn)
         if !skipVPNCheck && !LocalDevVPN.isActive {
@@ -565,7 +594,7 @@ final class InstallController: ObservableObject {
             if message == "Cancelled." {
                 phase = .idle
             } else if message.localizedCaseInsensitiveContains("anisette") || message.contains("-80045") || message.contains("-45061") {
-                phase = .failed(message + String(localized: "\n\nApple refused the sign-in data from the anisette servers AltLoad tried. Open Settings › Anisette, tap Reset Anisette Data, and try again in a few minutes."))
+                phase = .failed(message + String(localized: "\n\nApple refused the sign-in data from the anisette servers Reloader tried. Open Settings › Anisette, tap Reset Anisette Data, and try again in a few minutes."))
             } else {
                 phase = .failed(message)
             }
@@ -624,12 +653,13 @@ final class InstallController: ObservableObject {
                     password: c(credentials.password),
                     anisette_url: c(anisette),
                     pairing_file_path: c(pairingPath),
-                    host_name: c("AltLoad"),
+                    host_name: c(PairingController.hostName),
                     endpoints: UnsafePointer(endpointBuffer),
                     endpoint_count: endpoints.count,
                     ipa_path: c(ipa.path),
                     device_name: c(deviceName),
-                    machine_name: c("AltLoad"),
+                    // iloader's certificate is the only one this build signs with.
+                    machine_name: c("iloader"),
                     server_id: c(serverID),
                     capabilities: c(capabilities),
                     extensions_mode: extensionsMode)
@@ -672,7 +702,6 @@ final class InstallController: ObservableObject {
         self.session = nil
         Unmanaged<InstallController>.fromOpaque(ctx).release()
         twoFactor = nil
-        revoke = nil
         return outcome
     }
 
@@ -726,10 +755,8 @@ final class InstallController: ObservableObject {
             twoFactor = TwoFactorPrompt(
                 sms: p.sms, unknown: p.unknown, lastError: p.lastError,
                 numbers: p.numbers, selectedNumberID: p.selectedNumberId)
-        case 2:
-            let certs = (try? JSONDecoder().decode([RevokePrompt.Certificate].self, from: json)) ?? []
-            revoke = RevokePrompt(certificates: certs)
         default:
+            // Kind 2 (pick certificates to revoke) is never sent by this build.
             respond("abort")
         }
     }
@@ -753,7 +780,7 @@ final class InstallController: ObservableObject {
             guard granted else { return }
             let content = UNMutableNotificationContent()
             content.title = String(localized: "\(app.name) expires tomorrow")
-            content.body = String(localized: "Open AltLoad and tap Refresh to keep it working.")
+            content.body = String(localized: "Open Reloader and tap Refresh Profiles to keep it working.")
             content.sound = .default
             let comps = Calendar.current.dateComponents([.year, .month, .day, .hour, .minute], from: fireDate)
             let request = UNNotificationRequest(

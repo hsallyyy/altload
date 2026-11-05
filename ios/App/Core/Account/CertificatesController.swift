@@ -17,8 +17,12 @@ struct DevCertificate: Identifiable, Hashable, Decodable {
     var id: String { serial.isEmpty ? certificateId : serial }
     var expiration: Date? { expires > 0 ? Date(timeIntervalSince1970: TimeInterval(expires)) : nil }
     var isExpired: Bool { (expiration ?? .distantFuture) < .now }
-    /// Made by AltLoad itself (isideload names the machine after the app).
-    var isAltLoad: Bool { machineName.caseInsensitiveCompare("AltLoad") == .orderedSame }
+    /// iloader's certificate, the only one this build signs with: iloader names the
+    /// machine "iloader", and an imported .p12 says which serial it is.
+    var isInUse: Bool {
+        machineName.caseInsensitiveCompare("iloader") == .orderedSame
+            || SigningKeyStore.isImportedCertificate(serial: serial, email: AppleIDStore.email)
+    }
     var displayName: String { machineName.isEmpty ? (name.isEmpty ? String(localized: "Unnamed certificate") : name) : machineName }
 }
 
@@ -57,9 +61,10 @@ struct AccountOverview: Decodable, Equatable {
     var certificateLimit: Int? { certificates.map(\.maxActive).max().flatMap { $0 > 0 ? $0 : nil } }
 }
 
-/// Lists and revokes the development certificates of the user's own Apple ID,
-/// and shows the App IDs and devices on the team. Uses the same Rust session
-/// (and 2FA prompts) as installs.
+/// Lists the development certificates of the user's own Apple ID, and shows the App IDs
+/// and devices on the team. Uses the same Rust session (and 2FA prompts) as installs.
+/// It never revokes: revoking iloader's certificate would stop LiveContainer and every
+/// app signed with it, and the core refuses to anyway.
 @MainActor
 final class CertificatesController: ObservableObject {
     static let shared = CertificatesController()
@@ -111,12 +116,6 @@ final class CertificatesController: ObservableObject {
         run(request: ["op": "overview"])
     }
 
-    func revoke(_ certificates: [DevCertificate]) {
-        let serials = certificates.map(\.serial).filter { !$0.isEmpty }
-        guard !serials.isEmpty else { return }
-        run(request: ["op": "revoke", "serials": serials])
-    }
-
     func signOut() {
         AppleIDStore.forgetSession()
         credentials = nil
@@ -140,6 +139,10 @@ final class CertificatesController: ObservableObject {
 
     private func run(request: [String: Any]) {
         guard !isBusy, let credentials else { return }
+        guard !ProfileRefresher.shared.isBusy else {
+            phase = .failed(String(localized: "Reloader is refreshing app profiles. Try again when that's done."))
+            return
+        }
         guard let requestData = try? JSONSerialization.data(withJSONObject: request),
               let requestJSON = String(data: requestData, encoding: .utf8),
               let session = altload_install_session_new() else {
@@ -147,7 +150,7 @@ final class CertificatesController: ObservableObject {
             return
         }
         self.session = session
-        phase = .loading((request["op"] as? String) == "revoke" ? String(localized: "Revoking certificate…") : String(localized: "Signing in to Apple…"))
+        phase = .loading(String(localized: "Signing in to Apple…"))
 
         let preferred = InstallController.shared.anisetteURL
         let ctx = Unmanaged.passRetained(self).toOpaque()

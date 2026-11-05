@@ -1,4 +1,4 @@
-// On-device sideloading for AltLoad.
+// On-device sideloading for Reloader (a personal build of AltLoad).
 //
 // This is the on-device version of what AltServer does from a computer:
 //   1. Sign in to the user's Apple ID (GrandSlam SRP + anisette headers), falling
@@ -8,8 +8,9 @@
 //      service on port 49152 with the RPPairing file from the Pair tab, pair-verify, ask
 //      it for a TCP listener, wrap that in the TLS-PSK "CDTunnel", run a
 //      userspace TCP stack over it and do the RemoteServiceDiscovery handshake.
-//   3. Use the free developer portal API to register this device's UDID, create
-//      or reuse a development certificate, register App IDs and app groups, and
+//   3. Use the free developer portal API to register this device's UDID, find the
+//      development certificate iloader made (by the imported key, see identity.rs;
+//      none is ever created or revoked), register App IDs and app groups, and
 //      download provisioning profiles.
 //   4. Enable any capabilities the user picked on the App ID (so the profile grants
 //      their entitlements), inject AltStore's runtime keys (ALTDeviceID, ALTServerID,
@@ -19,6 +20,9 @@
 //
 // AltStore Beta (com.rileytestut.AltStore.Beta) gets the step-4 keys isideload only
 // adds for the exact AltStore bundle ID; see `inject_store_keys`.
+//
+// refresh.rs renews the profiles of apps already installed (the host LiveContainer
+// first) without re-signing them.
 //
 // Steps 2-5 come from `isideload` (nab138, MIT). Step 1 uses `idevice` (jkcoxson, MIT).
 
@@ -40,15 +44,13 @@ use isideload::auth::apple_account::{
     AppleAccount, TwoFactorCallbackParams, TwoFactorCallbackResponse,
 };
 use isideload::dev::app_ids::AppIdsApi;
-use isideload::dev::certificates::{CertificatesApi, DevelopmentCertificate};
+use isideload::dev::certificates::CertificatesApi;
 use isideload::dev::developer_session::DeveloperSession;
 use isideload::dev::device_type::DeveloperDeviceType;
 use isideload::dev::devices::DevicesApi;
 use isideload::dev::teams::{DeveloperTeam, TeamsApi};
-use isideload::sideload::builder::MaxCertsBehavior;
 use isideload::sideload::application::SpecialApp;
 use isideload::sideload::cert_identity::CertificateIdentity;
-use isideload::sideload::{SideloaderBuilder, TeamSelection};
 use isideload::util::keyring_storage::KeyringStorage;
 use isideload::util::storage::SideloadingStorage;
 use tokio::net::TcpStream;
@@ -58,13 +60,16 @@ mod account;
 mod bundle;
 mod device;
 mod extensions;
+mod identity;
 mod prompts;
+mod refresh;
 mod sign_in;
 mod storage;
 mod tunnel;
 
 use bundle::*;
 use extensions::*;
+use identity::*;
 use prompts::*;
 use sign_in::*;
 use storage::*;
@@ -77,8 +82,8 @@ pub type AltLoadProgressCb =
 pub type AltLoadPromptCb = Option<extern "C" fn(ctx: *mut c_void, kind: i32, json: *const c_char)>;
 
 /// Prompt kinds sent to Swift. Answer each with `altload_install_session_respond`.
+/// Kind 2 (revoke certificates) is never sent: this build doesn't revoke.
 const PROMPT_TWO_FACTOR: i32 = 1;
-const PROMPT_REVOKE_CERTS: i32 = 2;
 
 #[repr(C)]
 pub struct AltLoadEndpoint {
@@ -168,6 +173,10 @@ fn err(prefix: &str, e: impl std::fmt::Display) -> String {
     format!("{prefix}: {e}")
 }
 
+fn unix_now() -> i64 {
+    SystemTime::now().duration_since(UNIX_EPOCH).map_or(0, |d| d.as_secs() as i64)
+}
+
 #[derive(Clone, Copy)]
 struct Callbacks {
     progress: AltLoadProgressCb,
@@ -208,36 +217,39 @@ struct Config {
     endpoints: Vec<Endpoint>,
     ipa_path: String,
     device_name: String,
-    machine_name: String,
     server_id: String,
     capabilities: Vec<String>,
     extensions: ExtensionsMode,
 }
 
-impl Config {
-    unsafe fn from_raw(c: &AltLoadInstallConfig) -> Result<Self, String> {
-        let mut endpoints = Vec::new();
-        if !c.endpoints.is_null() {
-            for i in 0..c.endpoint_count {
-                let e = &*c.endpoints.add(i);
-                endpoints.push(Endpoint {
-                    host: req(e.host, "endpoint host")?,
-                    port: e.port,
-                    identifier: opt(e.identifier, ""),
-                    auth_tag: opt(e.auth_tag, ""),
-                });
-            }
+unsafe fn endpoints_from_raw(c: &AltLoadInstallConfig) -> Result<Vec<Endpoint>, String> {
+    let mut endpoints = Vec::new();
+    if !c.endpoints.is_null() {
+        for i in 0..c.endpoint_count {
+            let e = &*c.endpoints.add(i);
+            endpoints.push(Endpoint {
+                host: req(e.host, "endpoint host")?,
+                port: e.port,
+                identifier: opt(e.identifier, ""),
+                auth_tag: opt(e.auth_tag, ""),
+            });
         }
+    }
+    Ok(endpoints)
+}
+
+impl Config {
+    /// `machine_name` isn't read: the certificate is always iloader's, found by key.
+    unsafe fn from_raw(c: &AltLoadInstallConfig) -> Result<Self, String> {
         Ok(Self {
-            apple_id: req(c.apple_id, "Apple ID")?,
+            apple_id: req(c.apple_id, "Apple ID")?.trim().to_lowercase(),
             password: req(c.password, "password")?,
-            anisette_url: opt(c.anisette_url, "https://ani.jkcoxson.com"),
+            anisette_url: opt(c.anisette_url, DEFAULT_ANISETTE),
             pairing_file_path: req(c.pairing_file_path, "pairing file")?,
-            host_name: opt(c.host_name, "AltLoad"),
-            endpoints,
+            host_name: opt(c.host_name, "Reloader"),
+            endpoints: endpoints_from_raw(c)?,
             ipa_path: req(c.ipa_path, "IPA path")?,
             device_name: opt(c.device_name, "iPhone"),
-            machine_name: opt(c.machine_name, "AltLoad"),
             server_id: opt(c.server_id, "AltLoad"),
             capabilities: opt(c.capabilities, "")
                 .split(',')
@@ -351,7 +363,7 @@ pub unsafe extern "C" fn altload_install_session_run(
 
 /// Answer the prompt that is currently open.
 /// Two-factor prompt: "code:123456", "sms:<id>", "devices", "resend" or "abort".
-/// Certificate prompt: a JSON array of serial numbers to revoke, or "abort".
+/// Without an answer within 2 minutes it counts as "abort".
 #[no_mangle]
 pub unsafe extern "C" fn altload_install_session_respond(
     session: *mut AltLoadInstallSession,
@@ -422,10 +434,14 @@ async fn run_install(
         }
     };
 
+    // 0. iloader's key, before anything is sent to Apple: without it nothing can be
+    // signed, and a sign-in for nothing would still count towards the pause.
+    imported_key(&cfg.apple_id)?;
+
     // 1. Apple ID first, so a sign-in problem shows up straight away instead of
     // after the device link, and 2FA is done before anything touches the device.
     cbs.progress("Signing in to Apple…", -1.0);
-    let dev_session = sign_in(&cfg.apple_id, &cfg.password, &cfg.anisette_url, cbs, replies.clone()).await?;
+    let dev_session = sign_in(&cfg.apple_id, &cfg.password, &cfg.anisette_url, cbs, replies).await?;
     check()?;
 
     // 2. Tunnel to this device.
@@ -442,7 +458,7 @@ async fn run_install(
     // 3. Unpack the IPA and add AltStore's device keys.
     cbs.progress("Preparing the app…", -1.0);
     let (work_dir, app_dir) = prepare_app(&cfg.ipa_path, &udid, &cfg.server_id)?;
-    let result = sign_and_install(&cfg, dev_session, cbs, replies, &check, &udid, app_dir, &mut adapter, &mut handshake).await;
+    let result = sign_and_install(&cfg, dev_session, cbs, &check, &udid, app_dir, &mut adapter, &mut handshake).await;
     let _ = std::fs::remove_dir_all(&work_dir);
     result
 }
@@ -450,9 +466,8 @@ async fn run_install(
 #[allow(clippy::too_many_arguments)]
 async fn sign_and_install(
     cfg: &Config,
-    dev_session: DeveloperSession,
+    mut dev_session: DeveloperSession,
     cbs: Callbacks,
-    replies: Replies,
     check: &impl Fn() -> Result<(), String>,
     udid: &str,
     app_dir: PathBuf,
@@ -461,99 +476,52 @@ async fn sign_and_install(
 ) -> Result<Installed, String> {
     check()?;
 
-    let cert_replies = replies.clone();
-    let revoke_prompt = move |certs: Vec<DevelopmentCertificate>| {
-        let replies = cert_replies.clone();
-        let json = certs_json(&certs);
-        async move {
-            cbs.prompt(PROMPT_REVOKE_CERTS, &json);
-            let reply = replies.lock().await.recv().await.unwrap_or_default();
-            let serials: Vec<String> = serde_json::from_str(&reply).unwrap_or_default();
-            Ok::<_, rootcause::Report>(if serials.is_empty() { None } else { Some(serials) })
-        }
-    };
-
-    let mut sideloader = SideloaderBuilder::new(dev_session, cfg.apple_id.clone())
-        .team_selection(TeamSelection::First)
-        .max_certs_behavior(MaxCertsBehavior::Prompt(revoke_prompt.clone()))
-        .storage(Box::new(FileStorage::new("signing", Some("AltLoad"))))
-        .machine_name(cfg.machine_name.clone())
-        .delete_app_after_install(false)
-        .build();
-
-    // 4. Register this device on the team.
+    // 4. The team, then iloader's certificate (found by the imported key's public
+    // key) before anything changes on the account.
     cbs.progress("Registering this device…", -1.0);
-    let team = sideloader
-        .get_team()
+    let team = dev_session
+        .list_teams()
         .await
-        .map_err(|e| err("Couldn't load your developer team", e))?;
-    sideloader
-        .get_dev_session()
+        .map_err(|e| err("Couldn't load your developer team", e))?
+        .into_iter()
+        .next()
+        .ok_or("This Apple ID has no developer team.")?;
+    let cert = existing_identity(&mut dev_session, &team, &cfg.apple_id).await?;
+    check()?;
+
+    // 4a. Register this device on the team.
+    dev_session
         .ensure_device_registered(&team, &cfg.device_name, udid, None::<DeveloperDeviceType>)
         .await
         .map_err(|e| err("Couldn't register this device", e))?;
     check()?;
 
     // 4b. isideload only recognises AltStore by its exact bundle ID. AltStore Beta
-    // needs the same keys: the certificate (so it refreshes apps with it instead of
-    // making a new one) and its app group.
+    // needs the same keys: the certificate (so it refreshes apps with iloader's
+    // instead of making a new one) and its app group.
     if bundle_id_of(&app_dir) == ALTSTORE_BETA_BUNDLE_ID {
         cbs.progress("Preparing AltStore Beta…", -1.0);
-        let storage = FileStorage::new("signing", Some("AltLoad"));
-        let cert = CertificateIdentity::retrieve(
-            &cfg.machine_name,
-            &cfg.apple_id,
-            sideloader.get_dev_session(),
-            &team,
-            &storage,
-            &MaxCertsBehavior::Prompt(revoke_prompt.clone()),
-        )
-        .await
-        .map_err(|e| err("Couldn't get a signing certificate", e))?;
         inject_store_keys(&app_dir, ALTSTORE_BETA_BUNDLE_ID, &team.team_id, &cert).await?;
         check()?;
     }
 
     // 4c. Capabilities the user switched on. Enabled on the App ID before signing,
-    // so the provisioning profile sign_app downloads grants their entitlements.
+    // so the provisioning profile downloaded below grants their entitlements.
     if !cfg.capabilities.is_empty() {
         cbs.progress("Enabling entitlements…", -1.0);
-        enable_capabilities(sideloader.get_dev_session(), &team, &app_dir, &cfg.capabilities).await?;
+        enable_capabilities(&mut dev_session, &team, &app_dir, &cfg.capabilities).await?;
         check()?;
     }
 
-    // 5. Certificates, App IDs, profiles, signing.
+    // 5. App ID, profile and signing, always with iloader's certificate. Extensions
+    // share the main app's profile, as iloader 2.4.1 signs them, so an app uses one
+    // free App ID; isideload's own signing flow isn't used because its certificate
+    // lookup asks Apple for a new certificate whenever it finds no match.
     cbs.progress("Signing…", 0.0);
     if cfg.extensions == ExtensionsMode::Remove {
         remove_extensions(&app_dir)?;
     }
-    let signed_dir = if cfg.extensions == ExtensionsMode::MainProfile {
-        let storage = FileStorage::new("signing", Some("AltLoad"));
-        sign_with_main_profile(
-            sideloader.get_dev_session(),
-            &team,
-            &cfg.apple_id,
-            &cfg.machine_name,
-            &storage,
-            &MaxCertsBehavior::Prompt(revoke_prompt.clone()),
-            app_dir,
-            udid,
-            cbs,
-        )
-        .await?
-    } else {
-        let sign_progress = move |f: f32| {
-            cbs.progress("Signing…", f64::from(f).clamp(0.0, 1.0));
-            std::future::ready(())
-        };
-        sideloader
-            // No pairing file: that's for AltStore's remote-AltServer setup, and AltLoad
-            // is AltStore's AltServer itself. The UDID matches the ALTDeviceID we wrote.
-            .sign_app(app_dir, Some(team.clone()), false, Some(sign_progress), None, Some(udid))
-            .await
-            .map_err(|e| err("Signing failed", e))?
-            .0
-    };
+    let signed_dir = sign_with_main_profile(&mut dev_session, &team, &cert, app_dir, udid, cbs).await?;
     check()?;
 
     // 6. AFC upload + installation_proxy, through the tunnel.

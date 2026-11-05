@@ -7,7 +7,7 @@ extension UTType {
     static let ipa = UTType(importedAs: "com.apple.itunes.ipa", conformingTo: .zip)
 }
 
-/// The stores AltLoad installs. AltStore is the default.
+/// The stores Reloader installs. AltStore is the default.
 enum StoreApp: String, CaseIterable, Identifiable, Codable {
     case altstore
     case altstoreBeta
@@ -89,7 +89,7 @@ enum StoreApp: String, CaseIterable, Identifiable, Codable {
         }
     }
 
-    /// The AltStore-format source AltLoad reads first. Settings can override it.
+    /// The AltStore-format source Reloader reads first. Settings can override it.
     var defaultSourceURL: URL {
         switch self {
         case .altstore, .altstoreBeta: URL(string: "https://apps.altstore.io")!
@@ -451,7 +451,7 @@ enum StoreCatalog {
         var errorDescription: String? {
             switch self {
             case .repositoryDown(let store):
-                String(localized: "\(store.name)'s repository is down right now and AltLoad has no copy saved. Try again later, or download the IPA elsewhere and pick it with Install IPA from Files.")
+                String(localized: "\(store.name)'s repository is down right now and Reloader has no copy saved. Try again later, or download the IPA elsewhere and pick it with Install IPA from Files.")
             case .notAnIPA: String(localized: "That file isn't an .ipa.")
             case .http(let store, let code): String(localized: "The \(store.name) source returned HTTP \(code).")
             case .notListed(let store): String(localized: "\(store.name) isn't listed in the configured source.")

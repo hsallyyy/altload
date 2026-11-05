@@ -1,0 +1,318 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<!-- Nothing on this page loads or sends anything: the file and the passphrase stay in this browser. -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data:; base-uri 'none'; form-action 'none'">
+<meta name="referrer" content="no-referrer">
+<meta name="color-scheme" content="light dark">
+<title>Reloader Decrypt</title>
+<style>
+  :root {
+    --bg: #f2f2f7;
+    --card: #ffffff;
+    --text: #1c1c1e;
+    --muted: #6c6c70;
+    --border: #d1d1d6;
+    --accent: #0a64d6;
+    --accent-text: #ffffff;
+    --error-bg: #fdecea;
+    --error-text: #a3160b;
+    --ok-bg: #e7f6ec;
+    --ok-text: #135c2c;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #000000;
+      --card: #1c1c1e;
+      --text: #f2f2f7;
+      --muted: #a1a1a6;
+      --border: #3a3a3c;
+      --accent: #3d8bfd;
+      --accent-text: #ffffff;
+      --error-bg: #3b1513;
+      --error-text: #ff9b8f;
+      --ok-bg: #11301c;
+      --ok-text: #8fe0a8;
+    }
+  }
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font: 17px/1.45 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  }
+  main {
+    max-width: 520px;
+    margin: 0 auto;
+    padding: max(24px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right))
+             max(32px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left));
+  }
+  h1 { font-size: 28px; line-height: 1.2; margin: 0 0 8px; }
+  p { margin: 0 0 12px; }
+  .muted { color: var(--muted); font-size: 15px; }
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 16px;
+    margin: 16px 0;
+  }
+  label.field { display: block; font-weight: 600; margin-bottom: 8px; }
+  .file-pick {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 48px;
+    border: 1px dashed var(--accent);
+    border-radius: 12px;
+    color: var(--accent);
+    font-weight: 600;
+    cursor: pointer;
+    text-align: center;
+    padding: 8px 12px;
+  }
+  .file-pick input { position: absolute; width: 1px; height: 1px; opacity: 0; }
+  .file-pick:focus-within { outline: 3px solid var(--accent); outline-offset: 2px; }
+  #fileInfo { margin: 8px 0 0; overflow-wrap: anywhere; }
+  input[type="password"], input[type="text"] {
+    width: 100%;
+    min-height: 48px;
+    padding: 10px 12px;
+    font-size: 17px;
+    color: var(--text);
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+  }
+  input[type="password"]:focus, input[type="text"]:focus { outline: 3px solid var(--accent); outline-offset: 1px; }
+  .show { display: flex; align-items: center; gap: 8px; margin-top: 10px; font-size: 15px; color: var(--muted); }
+  .show input { width: 20px; height: 20px; margin: 0; }
+  button, .save {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    min-height: 50px;
+    border: 0;
+    border-radius: 12px;
+    background: var(--accent);
+    color: var(--accent-text);
+    font: inherit;
+    font-weight: 600;
+    text-decoration: none;
+    cursor: pointer;
+  }
+  button:disabled { opacity: 0.5; cursor: default; }
+  button:focus-visible, .save:focus-visible { outline: 3px solid var(--text); outline-offset: 2px; }
+  #status { min-height: 1.45em; margin: 12px 0 0; color: var(--muted); font-size: 15px; }
+  .message { border-radius: 12px; padding: 12px 14px; margin: 16px 0; overflow-wrap: anywhere; }
+  .error { background: var(--error-bg); color: var(--error-text); }
+  .ok { background: var(--ok-bg); color: var(--ok-text); }
+  .ok p:last-child, .error p:last-child { margin-bottom: 0; }
+  code { font: 13px/1.4 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; overflow-wrap: anywhere; }
+  [hidden] { display: none !important; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Decrypt Reloader.ipa</h1>
+  <p class="muted">Turns the <code>Reloader.ipa.enc</code> artifact from your build workflow back into <code>Reloader.ipa</code>. It all happens in this browser: the file and the passphrase never leave this device.</p>
+
+  <form id="form" class="card" autocomplete="off" novalidate>
+    <label class="field" for="file">1. Encrypted file</label>
+    <label class="file-pick">
+      <span id="pickLabel">Choose Reloader.ipa.enc</span>
+      <input id="file" type="file">
+    </label>
+    <p id="fileInfo" class="muted" hidden></p>
+
+    <div style="height: 20px"></div>
+
+    <label class="field" for="pass">2. Passphrase (your IPA_PASSPHRASE secret)</label>
+    <input id="pass" type="password" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" enterkeyhint="go">
+    <label class="show"><input id="showPass" type="checkbox"> Show passphrase</label>
+
+    <div style="height: 20px"></div>
+
+    <button id="decrypt" type="submit" disabled>Decrypt</button>
+    <p id="status" role="status" aria-live="polite"></p>
+  </form>
+
+  <div id="error" class="message error" role="alert" hidden></div>
+
+  <div id="result" class="message ok" hidden>
+    <p><strong>Decrypted.</strong> Tap below and confirm the download. Safari saves it to Files › Downloads.</p>
+    <a id="save" class="save" download="Reloader.ipa">Save Reloader.ipa</a>
+    <p style="margin-top: 12px"><span id="outSize"></span>. SHA-256, to compare with the one in the workflow run's summary:<br><code id="outHash"></code></p>
+  </div>
+
+  <p class="muted">Format: OpenSSL <code>enc -aes-256-cbc -pbkdf2 -iter 600000 -md sha256 -salt</code>. The file starts with <code>Salted__</code> and an 8-byte salt; PBKDF2-HMAC-SHA256 turns the passphrase and salt into a 32-byte key and a 16-byte IV, and the rest is AES-256-CBC with PKCS#7 padding.</p>
+</main>
+
+<script>
+'use strict';
+
+// Must match the openssl enc call in .github/workflows/build.yml.
+const ITERATIONS = 600000;
+const SALT_MAGIC = [0x53, 0x61, 0x6c, 0x74, 0x65, 0x64, 0x5f, 0x5f]; // "Salted__"
+const ZIP_MAGIC = [0x50, 0x4b, 0x03, 0x04]; // "PK\3\4": an IPA is a zip file
+
+class UserError extends Error {}
+
+function startsWith(bytes, magic) {
+  if (bytes.length < magic.length) return false;
+  return magic.every((b, i) => bytes[i] === b);
+}
+
+function formatSize(n) {
+  if (n < 1024) return n + ' bytes';
+  if (n < 1024 * 1024) return (n / 1024).toFixed(1) + ' KB';
+  return (n / (1024 * 1024)).toFixed(1) + ' MB';
+}
+
+function hex(buffer) {
+  return Array.from(new Uint8Array(buffer), b => b.toString(16).padStart(2, '0')).join('');
+}
+
+// Decrypts OpenSSL's salted format: "Salted__", 8 salt bytes, then AES-256-CBC
+// ciphertext. Key and IV come from one 48-byte PBKDF2-HMAC-SHA256 output, as
+// OpenSSL derives them with -pbkdf2.
+async function decryptOpenSSL(data, passphrase, onStep) {
+  if (startsWith(data, ZIP_MAGIC)) {
+    throw new UserError("This file isn't encrypted: it's already a zip or an IPA. If it's a zip from GitHub, open it in Files to unzip it and pick the Reloader.ipa.enc inside. If it's Reloader.ipa itself, you don't need this page.");
+  }
+  if (!startsWith(data, SALT_MAGIC) || data.length < 32) {
+    throw new UserError("This isn't an OpenSSL-encrypted file. Pick Reloader.ipa.enc from the workflow run's artifacts.");
+  }
+  if ((data.length - 16) % 16 !== 0) {
+    throw new UserError('The file is incomplete or damaged (its length is not a whole number of AES blocks). Download the artifact again.');
+  }
+
+  const salt = data.subarray(8, 16);
+  const ciphertext = data.subarray(16);
+
+  onStep('Deriving the key (600,000 PBKDF2 rounds)…');
+  const password = await crypto.subtle.importKey(
+    'raw', new TextEncoder().encode(passphrase), 'PBKDF2', false, ['deriveBits']);
+  const keyAndIv = new Uint8Array(await crypto.subtle.deriveBits(
+    { name: 'PBKDF2', hash: 'SHA-256', salt, iterations: ITERATIONS }, password, 48 * 8));
+  const key = await crypto.subtle.importKey(
+    'raw', keyAndIv.subarray(0, 32), { name: 'AES-CBC' }, false, ['decrypt']);
+
+  onStep('Decrypting…');
+  let plain;
+  try {
+    plain = new Uint8Array(await crypto.subtle.decrypt(
+      { name: 'AES-CBC', iv: keyAndIv.subarray(32, 48) }, key, ciphertext));
+  } catch (e) {
+    // WebCrypto checks the PKCS#7 padding, and a wrong key almost always breaks it.
+    throw new UserError('Wrong passphrase: decryption failed (bad padding). It must match the IPA_PASSPHRASE secret exactly, including capitals, spaces and punctuation.');
+  }
+  // About 1 in 256 wrong keys still produce valid padding, so check the result too.
+  if (!startsWith(plain, ZIP_MAGIC)) {
+    throw new UserError("Wrong passphrase: the decrypted data isn't an IPA. It must match the IPA_PASSPHRASE secret exactly.");
+  }
+  return plain;
+}
+
+const form = document.getElementById('form');
+const fileInput = document.getElementById('file');
+const pickLabel = document.getElementById('pickLabel');
+const fileInfo = document.getElementById('fileInfo');
+const passInput = document.getElementById('pass');
+const showPass = document.getElementById('showPass');
+const decryptButton = document.getElementById('decrypt');
+const statusLine = document.getElementById('status');
+const errorBox = document.getElementById('error');
+const resultBox = document.getElementById('result');
+const saveLink = document.getElementById('save');
+const outSize = document.getElementById('outSize');
+const outHash = document.getElementById('outHash');
+
+let blobUrl = null;
+let busy = false;
+
+function updateButton() {
+  decryptButton.disabled = busy || !fileInput.files.length || passInput.value === '';
+}
+
+function showError(text) {
+  errorBox.textContent = text;
+  errorBox.hidden = false;
+}
+
+function clearResult() {
+  errorBox.hidden = true;
+  resultBox.hidden = true;
+  if (blobUrl) {
+    URL.revokeObjectURL(blobUrl);
+    blobUrl = null;
+  }
+  saveLink.removeAttribute('href');
+}
+
+fileInput.addEventListener('change', () => {
+  clearResult();
+  const file = fileInput.files[0];
+  if (file) {
+    pickLabel.textContent = 'Choose a different file';
+    fileInfo.textContent = file.name + ' · ' + formatSize(file.size);
+    fileInfo.hidden = false;
+  } else {
+    pickLabel.textContent = 'Choose Reloader.ipa.enc';
+    fileInfo.hidden = true;
+  }
+  updateButton();
+});
+
+passInput.addEventListener('input', updateButton);
+
+showPass.addEventListener('change', () => {
+  passInput.type = showPass.checked ? 'text' : 'password';
+});
+
+form.addEventListener('submit', async (event) => {
+  event.preventDefault();
+  if (busy || decryptButton.disabled) return;
+  clearResult();
+
+  if (!window.crypto || !crypto.subtle) {
+    showError("This browser can't decrypt here: WebCrypto needs a secure page. Open this file over https (or as a local file), not over plain http.");
+    return;
+  }
+
+  busy = true;
+  updateButton();
+  try {
+    statusLine.textContent = 'Reading the file…';
+    const data = new Uint8Array(await fileInput.files[0].arrayBuffer());
+    const plain = await decryptOpenSSL(data, passInput.value, step => { statusLine.textContent = step; });
+
+    statusLine.textContent = 'Checking…';
+    const hash = hex(await crypto.subtle.digest('SHA-256', plain));
+    // octet-stream makes Safari offer a download instead of trying to show the file.
+    blobUrl = URL.createObjectURL(new Blob([plain], { type: 'application/octet-stream' }));
+    saveLink.href = blobUrl;
+    outSize.textContent = 'Reloader.ipa, ' + formatSize(plain.length);
+    outHash.textContent = hash;
+    resultBox.hidden = false;
+    statusLine.textContent = '';
+    saveLink.focus();
+  } catch (e) {
+    statusLine.textContent = '';
+    showError(e instanceof UserError ? e.message
+      : 'Something went wrong while decrypting: ' + (e && e.message ? e.message : String(e)) +
+        '. If the file is very large, close other tabs and try again.');
+  } finally {
+    busy = false;
+    updateButton();
+  }
+});
+</script>
+</body>
+</html>

@@ -1,11 +1,26 @@
 import SwiftUI
 
-/// About AltLoad: version, the people whose work it builds on, and the legal links.
-/// Settings live behind the gear at the top right.
+/// About Reloader: version, the people whose work it builds on, and the credit and
+/// licence AltLoad's license asks a modified build to carry. Settings live behind the
+/// gear at the top right.
 struct AboutView: View {
     @ObservedObject private var install = InstallController.shared
     @ObservedObject private var altServer = AltServerHost.shared
     @ObservedObject private var entitlements = EntitlementSettings.shared
+    @State private var notice: Notice?
+
+    /// LICENSE.md or THIRD_PARTY_NOTICES.md as this build carries them: the license wants
+    /// its notice in every copy, so they're bundled rather than linked.
+    private struct Notice: Identifiable {
+        let title: String
+        let resource: String
+        var id: String { resource }
+
+        var text: String {
+            Bundle.main.url(forResource: resource, withExtension: "md")
+                .flatMap { try? String(contentsOf: $0, encoding: .utf8) } ?? ""
+        }
+    }
 
     private var version: String {
         let v = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "–"
@@ -50,32 +65,20 @@ struct AboutView: View {
                 }
 
                 VStack(spacing: 10) {
-                    SectionLabel(title: "Legal")
+                    SectionLabel(title: "Credits")
                     VStack(spacing: 0) {
-                        link(String(localized: "Terms of Service"), symbol: "doc.text", url: "https://mirazbakis.github.io/terms.html")
+                        // Word for word as AltLoad's LICENSE.md (section 4) asks; not localized.
+                        link("Based on AltLoad by mirazbakis – https://github.com/mirazbakis/AltLoad",
+                             symbol: "checkmark.seal", url: "https://github.com/mirazbakis/AltLoad")
                         divider
-                        link(String(localized: "AltLoad License"), symbol: "checkmark.seal", url: "https://github.com/mirazbakis/AltLoad/blob/main/LICENSE.md")
+                        noticeRow(Notice(title: String(localized: "AltLoad License"), resource: "LICENSE"), symbol: "doc.text")
                         divider
-                        link(String(localized: "Third-Party Notices"), symbol: "list.bullet", url: "https://github.com/mirazbakis/AltLoad/blob/main/THIRD_PARTY_NOTICES.md")
-                        divider
-                        link(String(localized: "Security Policy"), symbol: "lock.shield", url: "https://github.com/mirazbakis/AltLoad/blob/main/SECURITY.md")
+                        noticeRow(Notice(title: String(localized: "Third-Party Notices"), resource: "THIRD_PARTY_NOTICES"), symbol: "list.bullet")
                     }
                     .cardSurface()
                 }
 
-                VStack(spacing: 10) {
-                    SectionLabel(title: "Project")
-                    VStack(spacing: 0) {
-                        link(String(localized: "Website"), symbol: "globe", url: "https://mirazbakis.github.io/AltLoad.html")
-                        divider
-                        link(String(localized: "Source Code"), symbol: "chevron.left.forwardslash.chevron.right", url: "https://github.com/mirazbakis/AltLoad")
-                        divider
-                        link(String(localized: "Report a Problem"), symbol: "exclamationmark.bubble", url: "https://github.com/mirazbakis/AltLoad/issues")
-                    }
-                    .cardSurface()
-                }
-
-                Text("AltLoad isn't affiliated with AltStore, SideStore, LiveContainer, Husk, Riley Testut or Apple. Apple, iPhone and iOS are trademarks of Apple Inc.")
+                Text("Reloader is a personal build and isn't the official AltLoad. It isn't affiliated with mirazbakis, AltStore, SideStore, LiveContainer, Husk, Riley Testut or Apple. Apple, iPhone and iOS are trademarks of Apple Inc.")
                     .font(.caption)
                     .foregroundStyle(Aurora.secondaryText)
                     .multilineTextAlignment(.center)
@@ -84,6 +87,27 @@ struct AboutView: View {
             .navigationTitle(String(localized: "About"))
             .toolbarTitleDisplayMode(.inlineLarge)
             .settingsButton()
+            .sheet(item: $notice) { notice in
+                NavigationStack {
+                    ScrollView {
+                        Text(notice.text)
+                            .font(.footnote.monospaced())
+                            .foregroundStyle(Aurora.frost)
+                            .textSelection(.enabled)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .padding(20)
+                    }
+                    .navigationTitle(notice.title)
+                    .navigationBarTitleDisplayMode(.inline)
+                    .toolbar {
+                        ToolbarItem(placement: .cancellationAction) {
+                            CloseButton { self.notice = nil }
+                        }
+                    }
+                }
+                .auroraTheme()
+                .presentationBackground(Aurora.night)
+            }
         }
     }
 
@@ -91,14 +115,14 @@ struct AboutView: View {
         VStack(spacing: 14) {
             AltLoadMark(size: 104)
             VStack(spacing: 4) {
-                Text("AltLoad")
+                Text("Reloader")
                     .font(.system(size: 30, weight: .bold))
                     .foregroundStyle(Aurora.frost)
                 Text("Version \(version)")
                     .font(.subheadline)
                     .foregroundStyle(Aurora.secondaryText)
             }
-            Text("AltStore, SideStore, LiveContainer and Husk, signed and installed on this iPhone. No computer.")
+            Text("Keeps LiveContainer and your other apps signed with iloader's certificate, by renewing their profiles on this iPhone.")
                 .font(.subheadline)
                 .foregroundStyle(Aurora.mist)
                 .multilineTextAlignment(.center)
@@ -137,17 +161,30 @@ struct AboutView: View {
 
     private func link(_ title: String, symbol: String, url: String) -> some View {
         Link(destination: URL(string: url)!) {
-            HStack(spacing: 14) {
-                IconTile(symbol: symbol, tint: Aurora.mist, size: 36)
-                Text(title).font(.subheadline.weight(.medium)).foregroundStyle(Aurora.frost)
-                Spacer()
-                Image(systemName: "arrow.up.right")
-                    .font(.caption.weight(.bold))
-                    .foregroundStyle(Aurora.secondaryText)
-            }
-            .padding(.horizontal, 16)
-            .frame(minHeight: 56)
-            .contentShape(.rect)
+            row(title, symbol: symbol, accessory: "arrow.up.right")
         }
+    }
+
+    private func noticeRow(_ notice: Notice, symbol: String) -> some View {
+        Button { self.notice = notice } label: {
+            row(notice.title, symbol: symbol, accessory: "chevron.right")
+        }
+        .buttonStyle(.plain)
+    }
+
+    private func row(_ title: String, symbol: String, accessory: String) -> some View {
+        HStack(spacing: 14) {
+            IconTile(symbol: symbol, tint: Aurora.mist, size: 36)
+            Text(title).font(.subheadline.weight(.medium)).foregroundStyle(Aurora.frost)
+                .multilineTextAlignment(.leading)
+            Spacer()
+            Image(systemName: accessory)
+                .font(.caption.weight(.bold))
+                .foregroundStyle(Aurora.secondaryText)
+        }
+        .padding(.horizontal, 16)
+        .padding(.vertical, 8)
+        .frame(minHeight: 56)
+        .contentShape(.rect)
     }
 }

@@ -77,7 +77,7 @@ struct AppIDsView: View {
                 VStack(alignment: .leading, spacing: 8) {
                     Text("Sign in to see your App IDs")
                         .font(.headline)
-                    Text("Every app and extension AltLoad signs uses an App ID. A free Apple ID can have 10 at a time, and each one frees up 7 days after it was made.")
+                    Text("Every app Reloader signs uses an App ID, and a refresh registers an expired one again. A free Apple ID can have 10 at a time, and each one frees up 7 days after it was made.")
                         .font(.subheadline)
                         .foregroundStyle(.secondary)
                 }

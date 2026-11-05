@@ -30,7 +30,7 @@ struct EntitlementsView: View {
             .buttonStyle(AltLoadButtonStyle(prominent: false, tint: Aurora.danger))
             .disabled(settings.enabled.isEmpty)
 
-            note(String(localized: "Turning one off stops AltLoad asking for it. Apple keeps it on the App ID until you remove it at developer.apple.com, so the profile may still include it."))
+            note(String(localized: "Turning one off stops Reloader asking for it. Apple keeps it on the App ID until you remove it at developer.apple.com, so the profile may still include it."))
                 .multilineTextAlignment(.center)
         }
         .navigationTitle(String(localized: "Entitlements"))

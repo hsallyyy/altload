@@ -17,9 +17,7 @@ AltLoad exists because of the work of these people and projects. Thank you.
 
 ## Services and resources
 
-- **[WSF Team](https://github.com/WhySooooFurious):** the madNS DNS server used by AltLoad's DNS profile.
 - **Anisette server hosts:** nythepegasus, WE. Studio and crystall1nedev, along with the hosts above.
 - **[doronz88](https://github.com/doronz88):** [DeveloperDiskImage](https://github.com/doronz88/DeveloperDiskImage), which AltLoad downloads for JIT and location simulation.
-- **[AltDirect](https://altdirect.app):** the source and download buttons in the README.
 
 Listing a project here doesn't mean it endorses or is affiliated with AltLoad. Licenses for bundled code are in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).

@@ -1,4 +1,4 @@
-// JSON sent to Swift for 2FA and certificate prompts, and parsing the replies.
+// JSON sent to Swift for 2FA prompts, and parsing the replies.
 
 use super::*;
 
@@ -29,20 +29,4 @@ pub(super) fn parse_two_factor(reply: &str) -> TwoFactorCallbackResponse {
         "resend" => TwoFactorCallbackResponse::ResendCode,
         _ => TwoFactorCallbackResponse::Abort,
     }
-}
-
-pub(super) fn certs_json(certs: &[DevelopmentCertificate]) -> String {
-    serde_json::Value::Array(
-        certs
-            .iter()
-            .map(|c| {
-                serde_json::json!({
-                    "serial": c.serial_number.clone().unwrap_or_default(),
-                    "name": c.name.clone().unwrap_or_default(),
-                    "machine": c.machine_name.clone().unwrap_or_default(),
-                })
-            })
-            .collect(),
-    )
-    .to_string()
 }
