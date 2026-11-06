@@ -266,6 +266,10 @@ struct Target {
     wanted: plist::Dictionary,
     /// Newest profile of this team for it on the device (index into the list).
     old: Option<usize>,
+    /// No profile is left on the device (iOS deletes expired ones), but the app's own
+    /// signed entitlements say it belongs to this team, so it's renewed anyway. If it
+    /// was signed with another certificate the new profile just doesn't help it.
+    expired_here: bool,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq)]
@@ -589,7 +593,10 @@ fn pick_targets(
 
         let old = newest_profile(on_device, &identifier, Some(team_id));
         let wanted = if signed.is_empty() { old.map(|(_, p)| p.entitlements.clone()).unwrap_or_default() } else { signed.clone() };
-        picks.push(Ok(Target { identifier: identifier.clone(), name: name.clone(), wanted, old: old.map(|(i, _)| i) }));
+        // The team from the app's signature alone, not from a profile.
+        let signed_team = app.signed_as(&bundle_id, &[]).1;
+        let expired_here = old.is_none() && signed_team.as_deref() == Some(team_id);
+        picks.push(Ok(Target { identifier: identifier.clone(), name: name.clone(), wanted, old: old.map(|(i, _)| i), expired_here }));
 
         // Extensions with an App ID of their own, as iloader signed every app before 2.4
         // (isideload 0.4.6). Since then extensions share the app's profile, so the ones
@@ -620,6 +627,7 @@ fn pick_targets(
                     name: label,
                     wanted: profile.entitlements.clone(),
                     old: Some(i),
+                    expired_here: false,
                 }));
             } else if profile.expires > unix_now() {
                 // Listed until it runs out, then left out.
@@ -675,13 +683,17 @@ async fn renew(
     old: Option<&ProfileInfo>,
     opts: &RefreshOptions,
 ) -> Result<ProfileInfo, Stop> {
-    let Some(old) = old else {
-        return Err(Stop::skipped(
-            "There's no profile for it on this device, so Reloader can't tell which certificate it's signed with.",
-        ));
-    };
-    if !old.lists_certificate(cert) {
-        return Err(Stop::skipped("It isn't signed with your iloader certificate, so Reloader leaves it alone."));
+    match old {
+        Some(old) if !old.lists_certificate(cert) => {
+            return Err(Stop::skipped("It isn't signed with your iloader certificate, so Reloader leaves it alone."));
+        }
+        Some(_) => {}
+        None if target.expired_here => {}
+        None => {
+            return Err(Stop::skipped(
+                "There's no profile for it on this device, so Reloader can't tell which certificate it's signed with.",
+            ));
+        }
     }
     let identifier = target.identifier.as_str();
     let name = target.name.as_str();

@@ -48,6 +48,8 @@ enum LocalDevVPN {
     /// True when a VPN interface (utun*) holds an address in the same /16 as the
     /// target (LocalDevVPN's defaults: interface 10.7.1.1, peer 10.7.0.1).
     static var isActive: Bool {
+        // Another device on the same Wi-Fi is reached directly, not through LocalDevVPN.
+        if !targetIP.hasPrefix("10.7.") { return true }
         let prefix = targetIP.split(separator: ".").prefix(2).joined(separator: ".") + "."
         var head: UnsafeMutablePointer<ifaddrs>?
         guard getifaddrs(&head) == 0, let first = head else { return false }
